@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.UUID;
+import lombok.SneakyThrows;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
 import me.desair.tus.server.upload.UploadId;
@@ -20,16 +21,19 @@ import me.desair.tus.server.upload.UploadType;
 import me.desair.tus.server.upload.concatenation.UploadConcatenationService;
 import me.desair.tus.server.util.TusServletRequest;
 import me.desair.tus.server.util.TusServletResponse;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
-public class ConcatenationHeadRequestHandlerTest {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class ConcatenationHeadRequestHandlerTest {
 
   private ConcatenationHeadRequestHandler handler;
 
@@ -41,8 +45,8 @@ public class ConcatenationHeadRequestHandlerTest {
 
   @Mock private UploadConcatenationService concatenationService;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     servletRequest = new MockHttpServletRequest();
     servletResponse = new MockHttpServletResponse();
     handler = new ConcatenationHeadRequestHandler();
@@ -50,7 +54,8 @@ public class ConcatenationHeadRequestHandlerTest {
   }
 
   @Test
-  public void supports() throws Exception {
+  @SneakyThrows
+  void supports() {
     assertThat(handler.supports(HttpMethod.GET), is(false));
     assertThat(handler.supports(HttpMethod.POST), is(false));
     assertThat(handler.supports(HttpMethod.PUT), is(false));
@@ -62,7 +67,8 @@ public class ConcatenationHeadRequestHandlerTest {
   }
 
   @Test
-  public void testRegularUpload() throws Exception {
+  @SneakyThrows
+  void testRegularUpload() {
     UploadInfo info1 = new UploadInfo();
     info1.setId(new UploadId(UUID.randomUUID()));
     info1.setUploadConcatHeaderValue("Impossible");
@@ -83,7 +89,8 @@ public class ConcatenationHeadRequestHandlerTest {
   }
 
   @Test
-  public void testPartialUpload() throws Exception {
+  @SneakyThrows
+  void testPartialUpload() {
     UploadInfo info1 = new UploadInfo();
     info1.setId(new UploadId(UUID.randomUUID()));
     info1.setUploadConcatHeaderValue("partial");
@@ -104,7 +111,8 @@ public class ConcatenationHeadRequestHandlerTest {
   }
 
   @Test
-  public void testConcatenatedUploadWithLength() throws Exception {
+  @SneakyThrows
+  void testConcatenatedUploadWithLength() {
     UploadInfo info1 = new UploadInfo();
     info1.setId(new UploadId(UUID.randomUUID()));
     info1.setUploadConcatHeaderValue("final; 123 456");
@@ -131,7 +139,8 @@ public class ConcatenationHeadRequestHandlerTest {
   }
 
   @Test
-  public void testConcatenatedUploadWithoutLength() throws Exception {
+  @SneakyThrows
+  void testConcatenatedUploadWithoutLength() {
     UploadInfo info1 = new UploadInfo();
     info1.setId(new UploadId(UUID.randomUUID()));
     info1.setUploadConcatHeaderValue("final; 123 456");

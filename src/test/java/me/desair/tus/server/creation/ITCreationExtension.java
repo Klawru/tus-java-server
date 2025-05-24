@@ -1,5 +1,6 @@
 package me.desair.tus.server.creation;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -11,7 +12,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.UUID;
+import lombok.SneakyThrows;
 import me.desair.tus.server.AbstractTusExtensionIntegrationTest;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
@@ -20,15 +23,15 @@ import me.desair.tus.server.exception.MaxUploadLengthExceededException;
 import me.desair.tus.server.exception.PostOnInvalidRequestURIException;
 import me.desair.tus.server.upload.UploadId;
 import me.desair.tus.server.upload.UploadInfo;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-public class ITCreationExtension extends AbstractTusExtensionIntegrationTest {
+class ITCreationExtension extends AbstractTusExtensionIntegrationTest {
 
   private static final String UPLOAD_URI = "/test/upload";
 
@@ -40,8 +43,8 @@ public class ITCreationExtension extends AbstractTusExtensionIntegrationTest {
 
   private UploadId id;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() throws IOException {
     servletRequest = new MockHttpServletRequest();
     servletResponse = new MockHttpServletResponse();
     tusFeature = new CreationExtension();
@@ -61,7 +64,7 @@ public class ITCreationExtension extends AbstractTusExtensionIntegrationTest {
                 upload.setId(id);
 
                 when(uploadStorageService.getUploadInfo(
-                        UPLOAD_URL + id.toString(), (String) invocation.getArgument(1)))
+                        UPLOAD_URL + id.toString(), invocation.getArgument(1)))
                     .thenReturn(upload);
                 return upload;
               }
@@ -69,7 +72,8 @@ public class ITCreationExtension extends AbstractTusExtensionIntegrationTest {
   }
 
   @Test
-  public void testOptions() throws Exception {
+  @SneakyThrows
+  void testOptions() {
     setRequestHeaders();
 
     executeCall(HttpMethod.OPTIONS, false);
@@ -81,7 +85,8 @@ public class ITCreationExtension extends AbstractTusExtensionIntegrationTest {
   }
 
   @Test
-  public void testPostWithLength() throws Exception {
+  @SneakyThrows
+  void testPostWithLength() {
     // Create upload
     servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, 9);
 
@@ -108,7 +113,8 @@ public class ITCreationExtension extends AbstractTusExtensionIntegrationTest {
   }
 
   @Test
-  public void testPostWithDeferredLength() throws Exception {
+  @SneakyThrows
+  void testPostWithDeferredLength() {
     // Create upload
     servletRequest.addHeader(HttpHeader.UPLOAD_DEFER_LENGTH, 1);
 
@@ -143,14 +149,17 @@ public class ITCreationExtension extends AbstractTusExtensionIntegrationTest {
     assertThat(servletResponse.getHeader(HttpHeader.UPLOAD_DEFER_LENGTH), is(nullValue()));
   }
 
-  @Test(expected = InvalidUploadLengthException.class)
-  public void testPostWithoutLength() throws Exception {
+  @Test
+  @SneakyThrows
+  void testPostWithoutLength() {
     // Create upload without any length header
-    executeCall(HttpMethod.POST, false);
+    assertThatThrownBy(() -> executeCall(HttpMethod.POST, false))
+        .isInstanceOf(InvalidUploadLengthException.class);
   }
 
   @Test
-  public void testPostWithMetadata() throws Exception {
+  @SneakyThrows
+  void testPostWithMetadata() {
     // Create upload
     servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, 9);
     servletRequest.addHeader(HttpHeader.UPLOAD_METADATA, "encoded metadata");
@@ -171,7 +180,8 @@ public class ITCreationExtension extends AbstractTusExtensionIntegrationTest {
   }
 
   @Test
-  public void testPostWithAllowedMaxSize() throws Exception {
+  @SneakyThrows
+  void testPostWithAllowedMaxSize() {
     when(uploadStorageService.getMaxUploadSize()).thenReturn(100L);
 
     // Create upload
@@ -191,26 +201,31 @@ public class ITCreationExtension extends AbstractTusExtensionIntegrationTest {
     assertThat(servletResponse.getHeader(HttpHeader.UPLOAD_DEFER_LENGTH), is(nullValue()));
   }
 
-  @Test(expected = MaxUploadLengthExceededException.class)
-  public void testPostWithExceededMaxSize() throws Exception {
+  @Test
+  @SneakyThrows
+  void testPostWithExceededMaxSize() {
     when(uploadStorageService.getMaxUploadSize()).thenReturn(100L);
 
     // Create upload
     servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, 110);
-    executeCall(HttpMethod.POST, false);
+    assertThatThrownBy(() -> executeCall(HttpMethod.POST, false))
+        .isInstanceOf(MaxUploadLengthExceededException.class);
   }
 
-  @Test(expected = PostOnInvalidRequestURIException.class)
-  public void testPostOnInvalidUrl() throws Exception {
+  @Test
+  @SneakyThrows
+  void testPostOnInvalidUrl() {
     // Create upload
     servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, 9);
     servletRequest.setRequestURI(UPLOAD_URL + id.toString());
 
-    executeCall(HttpMethod.POST, false);
+    assertThatThrownBy(() -> executeCall(HttpMethod.POST, false))
+        .isInstanceOf(PostOnInvalidRequestURIException.class);
   }
 
   @Test
-  public void testPostWithValidRegexURI() throws Exception {
+  @SneakyThrows
+  void testPostWithValidRegexURI() {
     reset(uploadStorageService);
     when(uploadStorageService.getUploadUri()).thenReturn("/submission/([a-z0-9]+)/files/upload");
     when(uploadStorageService.create(
@@ -224,7 +239,7 @@ public class ITCreationExtension extends AbstractTusExtensionIntegrationTest {
 
                 when(uploadStorageService.getUploadInfo(
                         "/submission/0ae5f8vv4s8c/files/upload/" + id.toString(),
-                        (String) invocation.getArgument(1)))
+                        invocation.getArgument(1)))
                     .thenReturn(upload);
                 return upload;
               }
@@ -251,32 +266,32 @@ public class ITCreationExtension extends AbstractTusExtensionIntegrationTest {
     assertThat(servletResponse.getHeader(HttpHeader.UPLOAD_DEFER_LENGTH), is(nullValue()));
   }
 
-  @Test(expected = PostOnInvalidRequestURIException.class)
-  public void testPostWithInvalidRegexURI() throws Exception {
+  @Test
+  @SneakyThrows
+  void testPostWithInvalidRegexURI() {
     reset(uploadStorageService);
     when(uploadStorageService.getUploadUri()).thenReturn("/submission/([a-z0-9]+)/files/upload");
     when(uploadStorageService.create(
             ArgumentMatchers.any(UploadInfo.class), nullable(String.class)))
         .then(
-            new Answer<UploadInfo>() {
-              @Override
-              public UploadInfo answer(InvocationOnMock invocation) throws Throwable {
-                UploadInfo upload = invocation.getArgument(0);
-                upload.setId(id);
+            (Answer<UploadInfo>)
+                invocation -> {
+                  UploadInfo upload = invocation.getArgument(0);
+                  upload.setId(id);
 
-                when(uploadStorageService.getUploadInfo(
-                        "/submission/0ae5f8vv4s8c/files/upload/" + id.toString(),
-                        (String) invocation.getArgument(1)))
-                    .thenReturn(upload);
-                return upload;
-              }
-            });
+                  when(uploadStorageService.getUploadInfo(
+                          "/submission/0ae5f8vv4s8c/files/upload/" + id.toString(),
+                          invocation.getArgument(1)))
+                      .thenReturn(upload);
+                  return upload;
+                });
 
     // Create upload
     servletRequest.setRequestURI("/submission/a+b/files/upload");
     servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, 9);
     servletRequest.addHeader(HttpHeader.UPLOAD_METADATA, "submission metadata");
 
-    executeCall(HttpMethod.POST, false);
+    assertThatThrownBy(() -> executeCall(HttpMethod.POST, false))
+        .isInstanceOf(PostOnInvalidRequestURIException.class);
   }
 }

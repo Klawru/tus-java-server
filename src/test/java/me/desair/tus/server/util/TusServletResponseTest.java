@@ -14,13 +14,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.commons.lang3.time.TimeZones;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-public class TusServletResponseTest {
+class TusServletResponseTest {
 
   private static final FastDateFormat DATE_FORMAT =
       FastDateFormat.getInstance(
@@ -32,14 +33,15 @@ public class TusServletResponseTest {
   private TusServletResponse tusServletResponse;
   private MockHttpServletResponse servletResponse;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     servletResponse = new MockHttpServletResponse();
     tusServletResponse = new TusServletResponse(servletResponse);
   }
 
   @Test
-  public void setDateHeader() throws Exception {
+  @SneakyThrows
+  void setDateHeader() {
     tusServletResponse.setDateHeader("TEST", DATE_FORMAT.parse("2018-01-03 22:34:14").getTime());
     tusServletResponse.setDateHeader("TEST", DATE_FORMAT.parse("2018-01-03 22:38:14").getTime());
 
@@ -62,7 +64,8 @@ public class TusServletResponseTest {
   }
 
   @Test
-  public void addDateHeader() throws Exception {
+  @SneakyThrows
+  void addDateHeader() {
     tusServletResponse.addDateHeader("TEST", DATE_FORMAT.parse("2018-01-03 22:34:12").getTime());
     tusServletResponse.addDateHeader("TEST", DATE_FORMAT.parse("2018-01-03 22:38:14").getTime());
 
@@ -88,7 +91,8 @@ public class TusServletResponseTest {
   }
 
   @Test
-  public void setHeader() throws Exception {
+  @SneakyThrows
+  void setHeader() {
     tusServletResponse.setHeader("TEST", "foo");
     tusServletResponse.setHeader("TEST", "bar");
 
@@ -97,7 +101,8 @@ public class TusServletResponseTest {
   }
 
   @Test
-  public void addHeader() throws Exception {
+  @SneakyThrows
+  void addHeader() {
     tusServletResponse.addHeader("TEST", "foo");
     tusServletResponse.addHeader("TEST", "bar");
 
@@ -106,7 +111,8 @@ public class TusServletResponseTest {
   }
 
   @Test
-  public void setIntHeader() throws Exception {
+  @SneakyThrows
+  void setIntHeader() {
     tusServletResponse.setIntHeader("TEST", 1);
     tusServletResponse.setIntHeader("TEST", 2);
 
@@ -115,7 +121,8 @@ public class TusServletResponseTest {
   }
 
   @Test
-  public void addIntHeader() throws Exception {
+  @SneakyThrows
+  void addIntHeader() {
     tusServletResponse.addIntHeader("TEST", 1);
     tusServletResponse.addIntHeader("TEST", 2);
 
@@ -124,7 +131,8 @@ public class TusServletResponseTest {
   }
 
   @Test
-  public void getHeaderNull() throws Exception {
+  @SneakyThrows
+  void getHeaderNull() {
     assertThat(tusServletResponse.getHeader("TEST"), is(nullValue()));
   }
 }

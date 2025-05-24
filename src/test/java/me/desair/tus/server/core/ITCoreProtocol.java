@@ -1,5 +1,6 @@
 package me.desair.tus.server.core;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -9,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.InputStream;
+import lombok.SneakyThrows;
 import me.desair.tus.server.AbstractTusExtensionIntegrationTest;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
@@ -19,15 +21,15 @@ import me.desair.tus.server.exception.UnsupportedMethodException;
 import me.desair.tus.server.exception.UploadNotFoundException;
 import me.desair.tus.server.exception.UploadOffsetMismatchException;
 import me.desair.tus.server.upload.UploadInfo;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-public class ITCoreProtocol extends AbstractTusExtensionIntegrationTest {
+class ITCoreProtocol extends AbstractTusExtensionIntegrationTest {
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     servletRequest = new MockHttpServletRequest();
     servletResponse = new MockHttpServletResponse();
     tusFeature = new CoreProtocol();
@@ -35,20 +37,24 @@ public class ITCoreProtocol extends AbstractTusExtensionIntegrationTest {
   }
 
   @Test
-  public void getName() throws Exception {
+  @SneakyThrows
+  void getName() {
     assertThat(tusFeature.getName(), is("core"));
   }
 
-  @Test(expected = UnsupportedMethodException.class)
-  public void testUnsupportedHttpMethod() throws Exception {
+  @Test
+  @SneakyThrows
+  void testUnsupportedHttpMethod() {
     prepareUploadInfo(2L, 10L);
     setRequestHeaders(HttpHeader.TUS_RESUMABLE);
 
-    executeCall(HttpMethod.forName("TEST"), false);
+    assertThatThrownBy(() -> executeCall(HttpMethod.forName("TEST"), false))
+        .isInstanceOf(UnsupportedMethodException.class);
   }
 
   @Test
-  public void testHeadWithLength() throws Exception {
+  @SneakyThrows
+  void testHeadWithLength() {
     prepareUploadInfo(2L, 10L);
     setRequestHeaders(HttpHeader.TUS_RESUMABLE);
 
@@ -62,7 +68,8 @@ public class ITCoreProtocol extends AbstractTusExtensionIntegrationTest {
   }
 
   @Test
-  public void testHeadWithoutLength() throws Exception {
+  @SneakyThrows
+  void testHeadWithoutLength() {
     prepareUploadInfo(2L, null);
     setRequestHeaders(HttpHeader.TUS_RESUMABLE);
 
@@ -75,25 +82,30 @@ public class ITCoreProtocol extends AbstractTusExtensionIntegrationTest {
     assertResponseStatus(HttpServletResponse.SC_NO_CONTENT);
   }
 
-  @Test(expected = UploadNotFoundException.class)
-  public void testHeadNotFound() throws Exception {
+  @Test
+  @SneakyThrows
+  void testHeadNotFound() {
     // We don't prepare an upload info
     setRequestHeaders(HttpHeader.TUS_RESUMABLE);
 
-    executeCall(HttpMethod.HEAD, false);
+    assertThatThrownBy(() -> executeCall(HttpMethod.HEAD, false))
+        .isInstanceOf(UploadNotFoundException.class);
   }
 
-  @Test(expected = InvalidTusResumableException.class)
-  public void testHeadInvalidVersion() throws Exception {
+  @Test
+  @SneakyThrows
+  void testHeadInvalidVersion() {
     setRequestHeaders();
     prepareUploadInfo(2L, null);
     servletRequest.addHeader(HttpHeader.TUS_RESUMABLE, "2.0.0");
 
-    executeCall(HttpMethod.HEAD, false);
+    assertThatThrownBy(() -> executeCall(HttpMethod.HEAD, false))
+        .isInstanceOf(InvalidTusResumableException.class);
   }
 
   @Test
-  public void testPatchSuccess() throws Exception {
+  @SneakyThrows
+  void testPatchSuccess() {
     prepareUploadInfo(2L, 10L);
     setRequestHeaders(
         HttpHeader.TUS_RESUMABLE,
@@ -112,35 +124,42 @@ public class ITCoreProtocol extends AbstractTusExtensionIntegrationTest {
     assertResponseStatus(HttpServletResponse.SC_NO_CONTENT);
   }
 
-  @Test(expected = InvalidContentTypeException.class)
-  public void testPatchInvalidContentType() throws Exception {
+  @Test
+  @SneakyThrows
+  void testPatchInvalidContentType() {
     prepareUploadInfo(2L, 10L);
     setRequestHeaders(
         HttpHeader.TUS_RESUMABLE, HttpHeader.UPLOAD_OFFSET, HttpHeader.CONTENT_LENGTH);
 
-    executeCall(HttpMethod.PATCH, false);
+    assertThatThrownBy(() -> executeCall(HttpMethod.PATCH, false))
+        .isInstanceOf(InvalidContentTypeException.class);
   }
 
-  @Test(expected = UploadOffsetMismatchException.class)
-  public void testPatchInvalidUploadOffset() throws Exception {
+  @Test
+  @SneakyThrows
+  void testPatchInvalidUploadOffset() {
     prepareUploadInfo(2L, 10L);
     setRequestHeaders(HttpHeader.TUS_RESUMABLE, HttpHeader.CONTENT_TYPE, HttpHeader.CONTENT_LENGTH);
     servletRequest.addHeader(HttpHeader.UPLOAD_OFFSET, 5);
 
-    executeCall(HttpMethod.PATCH, false);
+    assertThatThrownBy(() -> executeCall(HttpMethod.PATCH, false))
+        .isInstanceOf(UploadOffsetMismatchException.class);
   }
 
-  @Test(expected = InvalidContentLengthException.class)
-  public void testPatchInvalidContentLength() throws Exception {
+  @Test
+  @SneakyThrows
+  void testPatchInvalidContentLength() {
     prepareUploadInfo(2L, 10L);
     setRequestHeaders(HttpHeader.TUS_RESUMABLE, HttpHeader.CONTENT_TYPE, HttpHeader.UPLOAD_OFFSET);
     servletRequest.addHeader(HttpHeader.CONTENT_LENGTH, 9);
 
-    executeCall(HttpMethod.PATCH, false);
+    assertThatThrownBy(() -> executeCall(HttpMethod.PATCH, false))
+        .isInstanceOf(InvalidContentLengthException.class);
   }
 
   @Test
-  public void testOptionsWithMaxSize() throws Exception {
+  @SneakyThrows
+  void testOptionsWithMaxSize() {
     when(uploadStorageService.getMaxUploadSize()).thenReturn(107374182400L);
 
     setRequestHeaders();
@@ -155,7 +174,8 @@ public class ITCoreProtocol extends AbstractTusExtensionIntegrationTest {
   }
 
   @Test
-  public void testOptionsWithNoMaxSize() throws Exception {
+  @SneakyThrows
+  void testOptionsWithNoMaxSize() {
     when(uploadStorageService.getMaxUploadSize()).thenReturn(0L);
 
     setRequestHeaders();
@@ -170,7 +190,8 @@ public class ITCoreProtocol extends AbstractTusExtensionIntegrationTest {
   }
 
   @Test
-  public void testOptionsIgnoreTusResumable() throws Exception {
+  @SneakyThrows
+  void testOptionsIgnoreTusResumable() {
     when(uploadStorageService.getMaxUploadSize()).thenReturn(10L);
 
     setRequestHeaders();

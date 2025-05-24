@@ -1,5 +1,6 @@
 package me.desair.tus.server.checksum;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -9,22 +10,28 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import lombok.SneakyThrows;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
 import me.desair.tus.server.exception.ChecksumAlgorithmNotSupportedException;
+import me.desair.tus.server.exception.TusException;
 import me.desair.tus.server.exception.UploadChecksumMismatchException;
 import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadStorageService;
 import me.desair.tus.server.util.TusServletRequest;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
-public class ChecksumPatchRequestHandlerTest {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class ChecksumPatchRequestHandlerTest {
 
   private ChecksumPatchRequestHandler handler;
 
@@ -32,8 +39,8 @@ public class ChecksumPatchRequestHandlerTest {
 
   @Mock private UploadStorageService uploadStorageService;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() throws IOException {
     handler = new ChecksumPatchRequestHandler();
 
     UploadInfo info = new UploadInfo();
@@ -44,7 +51,8 @@ public class ChecksumPatchRequestHandlerTest {
   }
 
   @Test
-  public void supports() throws Exception {
+  @SneakyThrows
+  void supports() {
     assertThat(handler.supports(HttpMethod.GET), is(false));
     assertThat(handler.supports(HttpMethod.POST), is(false));
     assertThat(handler.supports(HttpMethod.PUT), is(false));
@@ -56,7 +64,8 @@ public class ChecksumPatchRequestHandlerTest {
   }
 
   @Test
-  public void testValidHeaderAndChecksum() throws Exception {
+  @SneakyThrows
+  void testValidHeaderAndChecksum() throws TusException, IOException {
     when(servletRequest.getHeader(HttpHeader.UPLOAD_CHECKSUM)).thenReturn("sha1 1234567890");
     when(servletRequest.getCalculatedChecksum(ArgumentMatchers.any(ChecksumAlgorithm.class)))
         .thenReturn("1234567890");
@@ -67,18 +76,23 @@ public class ChecksumPatchRequestHandlerTest {
     verify(servletRequest, times(1)).getCalculatedChecksum(any(ChecksumAlgorithm.class));
   }
 
-  @Test(expected = UploadChecksumMismatchException.class)
-  public void testValidHeaderAndInvalidChecksum() throws Exception {
+  @Test
+  @SneakyThrows
+  void testValidHeaderAndInvalidChecksum() {
     when(servletRequest.getHeader(HttpHeader.UPLOAD_CHECKSUM)).thenReturn("sha1 1234567890");
     when(servletRequest.getCalculatedChecksum(ArgumentMatchers.any(ChecksumAlgorithm.class)))
         .thenReturn("0123456789");
     when(servletRequest.hasCalculatedChecksum()).thenReturn(true);
 
-    handler.process(HttpMethod.PATCH, servletRequest, null, uploadStorageService, null);
+    assertThatThrownBy(
+            () ->
+                handler.process(HttpMethod.PATCH, servletRequest, null, uploadStorageService, null))
+        .isInstanceOf(UploadChecksumMismatchException.class);
   }
 
   @Test
-  public void testNoHeader() throws Exception {
+  @SneakyThrows
+  void testNoHeader() {
     when(servletRequest.getHeader(HttpHeader.UPLOAD_CHECKSUM)).thenReturn(null);
 
     handler.process(HttpMethod.PATCH, servletRequest, null, uploadStorageService, null);
@@ -86,11 +100,15 @@ public class ChecksumPatchRequestHandlerTest {
     verify(servletRequest, never()).getCalculatedChecksum(any(ChecksumAlgorithm.class));
   }
 
-  @Test(expected = ChecksumAlgorithmNotSupportedException.class)
-  public void testInvalidHeader() throws Exception {
+  @Test
+  @SneakyThrows
+  void testInvalidHeader() {
     when(servletRequest.getHeader(HttpHeader.UPLOAD_CHECKSUM)).thenReturn("test 1234567890");
     when(servletRequest.hasCalculatedChecksum()).thenReturn(true);
 
-    handler.process(HttpMethod.PATCH, servletRequest, null, uploadStorageService, null);
+    assertThatThrownBy(
+            () ->
+                handler.process(HttpMethod.PATCH, servletRequest, null, uploadStorageService, null))
+        .isInstanceOf(ChecksumAlgorithmNotSupportedException.class);
   }
 }

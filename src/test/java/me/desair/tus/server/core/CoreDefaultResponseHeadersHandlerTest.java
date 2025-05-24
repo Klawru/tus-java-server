@@ -3,17 +3,18 @@ package me.desair.tus.server.core;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import lombok.SneakyThrows;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
 import me.desair.tus.server.TusFileUploadService;
 import me.desair.tus.server.util.TusServletRequest;
 import me.desair.tus.server.util.TusServletResponse;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-public class CoreDefaultResponseHeadersHandlerTest {
+class CoreDefaultResponseHeadersHandlerTest {
 
   private MockHttpServletRequest servletRequest;
 
@@ -21,15 +22,16 @@ public class CoreDefaultResponseHeadersHandlerTest {
 
   private CoreDefaultResponseHeadersHandler handler;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     servletRequest = new MockHttpServletRequest();
     servletResponse = new MockHttpServletResponse();
     handler = new CoreDefaultResponseHeadersHandler();
   }
 
   @Test
-  public void supports() throws Exception {
+  @SneakyThrows
+  void supports() {
     assertThat(handler.supports(HttpMethod.GET), is(true));
     assertThat(handler.supports(HttpMethod.POST), is(true));
     assertThat(handler.supports(HttpMethod.PUT), is(true));
@@ -41,7 +43,8 @@ public class CoreDefaultResponseHeadersHandlerTest {
   }
 
   @Test
-  public void process() throws Exception {
+  @SneakyThrows
+  void process() {
     handler.process(
         HttpMethod.PATCH,
         new TusServletRequest(servletRequest),

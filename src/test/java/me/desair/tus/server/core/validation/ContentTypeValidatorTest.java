@@ -1,64 +1,63 @@
 package me.desair.tus.server.core.validation;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
 
+import lombok.SneakyThrows;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
 import me.desair.tus.server.exception.InvalidContentTypeException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 
-public class ContentTypeValidatorTest {
+class ContentTypeValidatorTest {
 
   private ContentTypeValidator validator;
 
   private MockHttpServletRequest servletRequest;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     servletRequest = new MockHttpServletRequest();
     validator = new ContentTypeValidator();
   }
 
   @Test
-  public void validateValid() throws Exception {
+  @SneakyThrows
+  void validateValid() {
     servletRequest.addHeader(
         HttpHeader.CONTENT_TYPE, ContentTypeValidator.APPLICATION_OFFSET_OCTET_STREAM);
 
-    try {
-      validator.validate(HttpMethod.PATCH, servletRequest, null, null);
-    } catch (Exception ex) {
-      fail();
-    }
-
-    // No exception is thrown
-  }
-
-  @Test(expected = InvalidContentTypeException.class)
-  public void validateInvalidHeader() throws Exception {
-    servletRequest.addHeader(HttpHeader.CONTENT_TYPE, "application/octet-stream");
-
-    validator.validate(HttpMethod.PATCH, servletRequest, null, null);
-
-    // Expect a InvalidContentTypeException exception
-  }
-
-  @Test(expected = InvalidContentTypeException.class)
-  public void validateMissingHeader() throws Exception {
-    // We don't set the header
-    // servletRequest.addHeader(HttpHeader.CONTENT_TYPE,
-    // ContentTypeValidator.APPLICATION_OFFSET_OCTET_STREAM);
-
-    validator.validate(HttpMethod.PATCH, servletRequest, null, null);
-
-    // Expect a InvalidContentTypeException exception
+    assertThatCode(() -> validator.validate(HttpMethod.PATCH, servletRequest, null, null))
+            .doesNotThrowAnyException();
   }
 
   @Test
-  public void supports() throws Exception {
+  @SneakyThrows
+  void validateInvalidHeader() {
+    servletRequest.addHeader(HttpHeader.CONTENT_TYPE, "application/octet-stream");
+
+    assertThatThrownBy(() -> validator.validate(HttpMethod.PATCH, servletRequest, null, null))
+        .isInstanceOf(InvalidContentTypeException.class);
+  }
+
+  @Test
+  @SneakyThrows
+  void validateMissingHeader() {
+    // We don't set the header
+    // servletRequest.addHeader(HttpHeader.CONTENT_TYPE,
+    // ContentTypeValidator.APPLICATION_OFFSET_OCTET_STREAM)
+
+    assertThatThrownBy(() -> validator.validate(HttpMethod.PATCH, servletRequest, null, null))
+        .isInstanceOf(InvalidContentTypeException.class);
+  }
+
+  @Test
+  @SneakyThrows
+  void supports() {
     assertThat(validator.supports(HttpMethod.GET), is(false));
     assertThat(validator.supports(HttpMethod.POST), is(false));
     assertThat(validator.supports(HttpMethod.PUT), is(false));

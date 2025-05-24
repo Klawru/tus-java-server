@@ -1,8 +1,8 @@
 package me.desair.tus.server.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,38 +11,42 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /** Test cases for the HttpChunkedEncodingInputStream class. */
-public class HttpChunkedEncodingInputStreamTest {
+class HttpChunkedEncodingInputStreamTest {
 
   Map<String, List<String>> trailerHeaders;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     trailerHeaders = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
   }
 
   @Test
-  public void chunkedWithoutHeaders() throws IOException {
+  @SneakyThrows
+  void chunkedWithoutHeaders() {
     String content =
-        "4\r\n"
-            + "Wiki\r\n"
-            + "5\r\n"
-            + "pedia\r\n"
-            + "D\r\n"
-            + " in\n"
-            + "\n\r"
-            + "chunks.\r\n"
-            + "0\r\n"
-            + "\r\n";
+        """
+        4\r
+        Wiki\r
+        5\r
+        pedia\r
+        D\r
+         in
+
+        \rchunks.\r
+        0\r
+        \r
+        """;
 
     HttpChunkedEncodingInputStream inputStream =
         new HttpChunkedEncodingInputStream(IOUtils.toInputStream(content, StandardCharsets.UTF_8));
 
-    String expectedContent = "Wikipedia in\n" + "\n\r" + "chunks.";
+    String expectedContent = "Wikipedia in\n\n\rchunks.";
 
     StringWriter writer = new StringWriter();
     IOUtils.copy(inputStream, writer, StandardCharsets.UTF_8);
@@ -52,18 +56,20 @@ public class HttpChunkedEncodingInputStreamTest {
   }
 
   @Test
-  public void chunkedWithHeaders() throws IOException {
+  @SneakyThrows
+  void chunkedWithHeaders() {
     String content =
-        "8\r\n"
-            + "Mozilla \r\n"
-            + "A\r\n"
-            + "Developer \r\n"
-            + "7\r\n"
-            + "Network\r\n"
-            + "0\r\n"
-            + "Expires: Wed, 21 Oct 2015 07:28:00 GMT\r\n"
-            + "\r\n";
-
+        """
+        8\r
+        Mozilla \r
+        A\r
+        Developer \r
+        7\r
+        Network\r
+        0\r
+        Expires: Wed, 21 Oct 2015 07:28:00 GMT\r
+        \r
+        """;
     HttpChunkedEncodingInputStream inputStream =
         new HttpChunkedEncodingInputStream(
             IOUtils.toInputStream(content, StandardCharsets.UTF_8), trailerHeaders);
@@ -80,20 +86,23 @@ public class HttpChunkedEncodingInputStreamTest {
   }
 
   @Test
-  public void chunkedWithFoldedHeaders() throws IOException {
+  @SneakyThrows
+  void chunkedWithFoldedHeaders() {
     String content =
-        "8\r\n"
-            + "Mozilla \r\n"
-            + "A\r\n"
-            + "Developer \r\n"
-            + "7\r\n"
-            + "Network\r\n"
-            + "0\r\n"
-            + "Expires: Wed, 21 Oct 2015\n"
-            + " 07:28:00 GMT\r\n"
-            + "Cookie: ABC\n"
-            + "\tDEF\r\n"
-            + "\r\n";
+        """
+        8\r
+        Mozilla \r
+        A\r
+        Developer \r
+        7\r
+        Network\r
+        0\r
+        Expires: Wed, 21 Oct 2015
+         07:28:00 GMT\r
+        Cookie: ABC
+        \tDEF\r
+        \r
+        """;
 
     HttpChunkedEncodingInputStream inputStream =
         new HttpChunkedEncodingInputStream(
@@ -112,17 +121,19 @@ public class HttpChunkedEncodingInputStreamTest {
   }
 
   @Test
-  public void testChunkedInputStream() throws IOException {
+  @SneakyThrows
+  void testChunkedInputStream() {
     String correctInput =
-        "10;key=\"value\r\n"
-            + "newline\"\r\n"
-            + "1234567890"
-            + "123456\r\n"
-            + "5\r\n"
-            + "12345\r\n"
-            + "0\r\n"
-            + "Footer1: abcde\r\n"
-            + "Footer2: fghij\r\n";
+        """
+        10;key="value\r
+        newline"\r
+        1234567890123456\r
+        5\r
+        12345\r
+        0\r
+        Footer1: abcde\r
+        Footer2: fghij\r
+        """;
 
     String correctResult = "123456789012345612345";
 
@@ -140,28 +151,32 @@ public class HttpChunkedEncodingInputStreamTest {
     assertEquals("fghij", trailerHeaders.get("footer2").get(0));
   }
 
-  @Test(expected = IOException.class)
-  public void testCorruptChunkedInputStream1() throws IOException {
+  @Test
+  @SneakyThrows
+  void testCorruptChunkedInputStream1() {
     // missing \r\n at the end of the first chunk
     String corruptInput =
-        "10;key=\"val\\ue\"\r\n"
-            + "1234567890"
-            + "12345\r\n"
-            + "5\r\n"
-            + "12345\r\n"
-            + "0\r\n"
-            + "Footer1: abcde\r\n"
-            + "Footer2: fghij\r\n";
+        """
+        10;key="val\\ue"\r
+        123456789012345\r
+        5\r
+        12345\r
+        0\r
+        Footer1: abcde\r
+        Footer2: fghij\r
+        """;
 
     InputStream in =
         new HttpChunkedEncodingInputStream(
             IOUtils.toInputStream(corruptInput, StandardCharsets.UTF_8), trailerHeaders);
     StringWriter writer = new StringWriter();
-    IOUtils.copy(in, writer, StandardCharsets.UTF_8);
+    assertThatThrownBy(() -> IOUtils.copy(in, writer, StandardCharsets.UTF_8))
+        .isInstanceOf(IOException.class);
   }
 
   @Test
-  public void testEmptyChunkedInputStream() throws IOException {
+  @SneakyThrows
+  void testEmptyChunkedInputStream() {
     String input = "0\r\n";
     InputStream in =
         new HttpChunkedEncodingInputStream(
@@ -172,7 +187,8 @@ public class HttpChunkedEncodingInputStreamTest {
   }
 
   @Test
-  public void testReadPartialByteArray() throws IOException {
+  @SneakyThrows
+  void testReadPartialByteArray() {
     String input = "A\r\n0123456789\r\n0\r\n";
     InputStream in =
         new HttpChunkedEncodingInputStream(
@@ -186,8 +202,9 @@ public class HttpChunkedEncodingInputStreamTest {
   }
 
   @Test
-  public void testReadByte() throws IOException {
-    String input = "4\r\n" + "0123\r\n" + "6\r\n" + "456789\r\n0\r\n";
+  @SneakyThrows
+  void testReadByte() {
+    String input = "4\r\n0123\r\n6\r\n456789\r\n0\r\n";
     InputStream in =
         new HttpChunkedEncodingInputStream(
             IOUtils.toInputStream(input, StandardCharsets.UTF_8), trailerHeaders);
@@ -206,7 +223,8 @@ public class HttpChunkedEncodingInputStreamTest {
   }
 
   @Test
-  public void testReadEof() throws IOException {
+  @SneakyThrows
+  void testReadEof() {
     String input = "A\r\n0123456789\r\n0\r\n";
     InputStream in =
         new HttpChunkedEncodingInputStream(
@@ -220,7 +238,8 @@ public class HttpChunkedEncodingInputStreamTest {
   }
 
   @Test
-  public void testReadEof2() throws IOException {
+  @SneakyThrows
+  void testReadEof2() {
     String input = "A\r\n0123456789\r\n0\r\n";
     InputStream in =
         new HttpChunkedEncodingInputStream(
@@ -234,7 +253,8 @@ public class HttpChunkedEncodingInputStreamTest {
   }
 
   @Test
-  public void testReadClosed() throws IOException {
+  @SneakyThrows
+  void testReadClosed() {
     String input = "A\r\n0123456789\r\n0\r\n";
     InputStream in =
         new HttpChunkedEncodingInputStream(
@@ -242,45 +262,32 @@ public class HttpChunkedEncodingInputStreamTest {
 
     in.close();
 
-    try {
-      byte[] byteArray = new byte[10];
-      assertEquals(-1, in.read(byteArray));
-      fail();
-    } catch (Exception ex) {
-      assertTrue(ex instanceof IOException);
-    }
+    byte[] byteArray = new byte[10];
+    assertThatCode(() -> assertEquals(-1, in.read(byteArray))).isInstanceOf(IOException.class);
 
-    try {
-      assertEquals(-1, in.read());
-      fail();
-    } catch (Exception ex) {
-      assertTrue(ex instanceof IOException);
-    }
+    assertThatCode(() -> assertEquals(-1, in.read())).isInstanceOf(IOException.class);
 
     // double close has not effect
     in.close();
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testNullInputstream() throws IOException {
-    InputStream in = null;
-    try {
-      in = new HttpChunkedEncodingInputStream(null);
-    } finally {
-      if (in != null) {
-        in.close();
-      }
-    }
+  @Test
+  @SneakyThrows
+  @SuppressWarnings("resource")
+  void testNullInputstream() {
+    assertThatThrownBy(() -> new HttpChunkedEncodingInputStream(null))
+        .isInstanceOf(IllegalArgumentException.class);
   }
 
-  @Test(expected = IOException.class)
-  public void testNegativeChunkSize() throws IOException {
+  @Test
+  @SneakyThrows
+  void testNegativeChunkSize() {
     String input = "-A\r\n0123456789\r\n0\r\n";
     InputStream in =
         new HttpChunkedEncodingInputStream(
             IOUtils.toInputStream(input, StandardCharsets.UTF_8), trailerHeaders);
 
     byte[] byteArray = new byte[10];
-    in.read(byteArray);
+    assertThatThrownBy(() -> in.read(byteArray)).isInstanceOf(IOException.class);
   }
 }

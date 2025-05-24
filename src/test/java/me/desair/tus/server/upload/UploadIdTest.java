@@ -1,16 +1,19 @@
 package me.desair.tus.server.upload;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.UUID;
-import org.junit.Test;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.Test;
 
 /** Test class for the UploadId class. */
-public class UploadIdTest {
+class UploadIdTest {
 
   @Test
-  public void getOriginalObjectUuid() {
+  @SneakyThrows
+  void getOriginalObjectUuid() {
     UUID id = UUID.randomUUID();
     UploadId uploadId = new UploadId(id);
     assertEquals(id.toString(), uploadId.toString());
@@ -18,49 +21,57 @@ public class UploadIdTest {
   }
 
   @Test
-  public void getOriginalObjectLong() {
+  @SneakyThrows
+  void getOriginalObjectLong() {
     UploadId uploadId = new UploadId(1337L);
     assertEquals("1337", uploadId.toString());
     assertEquals(1337L, uploadId.getOriginalObject());
   }
 
-  @Test(expected = NullPointerException.class)
-  public void testNullConstructor() {
-    new UploadId(null);
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void testBlankConstructor() {
-    new UploadId(" \t");
+  @Test
+  @SneakyThrows
+  void testNullConstructor() {
+    assertThatThrownBy(() -> new UploadId(null)).isInstanceOf(NullPointerException.class);
   }
 
   @Test
-  public void toStringNotYetUrlSafe() {
+  @SneakyThrows
+  void testBlankConstructor() {
+    assertThatThrownBy(() -> new UploadId(" \t")).isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  @SneakyThrows
+  void toStringNotYetUrlSafe() {
     UploadId uploadId = new UploadId("my test id/1");
     assertEquals("my+test+id%2F1", uploadId.toString());
   }
 
   @Test
-  public void toStringNotYetUrlSafe2() {
+  @SneakyThrows
+  void toStringNotYetUrlSafe2() {
     UploadId uploadId = new UploadId("id+%2F1+/+1");
     assertEquals("id+%2F1+/+1", uploadId.toString());
   }
 
   @Test
-  public void toStringAlreadyUrlSafe() {
+  @SneakyThrows
+  void toStringAlreadyUrlSafe() {
     UploadId uploadId = new UploadId("my+test+id%2F1");
     assertEquals("my+test+id%2F1", uploadId.toString());
   }
 
   @Test
-  public void toStringWithInternalDecoderException() {
+  @SneakyThrows
+  void toStringWithInternalDecoderException() {
     String test = "Invalid % value";
     UploadId id = new UploadId(test);
     assertEquals("Invalid % value", id.toString());
   }
 
   @Test
-  public void equalsSameUrlSafeValue() {
+  @SneakyThrows
+  void equalsSameUrlSafeValue() {
     UploadId id1 = new UploadId("id%2F1");
     UploadId id2 = new UploadId("id/1");
     UploadId id3 = new UploadId("id/1");
@@ -68,12 +79,13 @@ public class UploadIdTest {
     assertEquals(id1, id2);
     assertEquals(id2, id3);
     assertEquals(id1, id1);
-    assertNotEquals(id1, null);
+    assertNotEquals(null, id1);
     assertNotEquals(id1, UUID.randomUUID());
   }
 
   @Test
-  public void hashCodeSameUrlSafeValue() {
+  @SneakyThrows
+  void hashCodeSameUrlSafeValue() {
     UploadId id1 = new UploadId("id%2F1");
     UploadId id2 = new UploadId("id/1");
     UploadId id3 = new UploadId("id/1");

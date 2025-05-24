@@ -4,6 +4,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.SneakyThrows;
 import me.desair.tus.server.upload.TimeBasedUploadIdFactory;
 import me.desair.tus.server.upload.UploadLockingService;
 import me.desair.tus.server.upload.UploadStorageService;
@@ -12,14 +13,14 @@ import me.desair.tus.server.upload.concatenation.VirtualConcatenationService;
 import me.desair.tus.server.upload.disk.DiskLockingService;
 import me.desair.tus.server.upload.disk.DiskStorageService;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class ITTusFileUploadServiceCached extends ITTusFileUploadService {
+class ITTusFileUploadServiceCached extends ITTusFileUploadService {
 
   @Override
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     super.setUp();
     tusFileUploadService =
         tusFileUploadService
@@ -28,7 +29,8 @@ public class ITTusFileUploadServiceCached extends ITTusFileUploadService {
   }
 
   @Test
-  public void testProcessUploadDoubleCached() throws Exception {
+  @SneakyThrows
+  void testProcessUploadDoubleCached() {
     String path = storagePath.toAbsolutePath().toString();
     UploadStorageService uploadStorageService = new DiskStorageService(path);
     UploadLockingService uploadLockingService = new DiskLockingService(path);
@@ -48,7 +50,8 @@ public class ITTusFileUploadServiceCached extends ITTusFileUploadService {
   }
 
   @Test
-  public void testCachedUploadDifferentKey() throws Exception {
+  @SneakyThrows
+  void testCachedUploadDifferentKey() {
     String uploadContent = "This is an upload of someone else";
 
     // Create upload

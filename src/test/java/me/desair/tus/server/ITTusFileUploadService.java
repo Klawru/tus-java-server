@@ -1,6 +1,9 @@
 package me.desair.tus.server;
 
 import static me.desair.tus.server.util.MapMatcher.hasSize;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.InstanceOfAssertFactories.throwable;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -8,10 +11,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -21,25 +23,28 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.UUID;
+import lombok.SneakyThrows;
 import me.desair.tus.server.exception.TusException;
 import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.util.Utils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 /** Test cases for the {@link TusFileUploadService}. */
-public class ITTusFileUploadService {
+@SuppressWarnings("java:S5961")
+class ITTusFileUploadService {
 
   protected static final String UPLOAD_URI = "/test/upload";
   protected static final String OWNER_KEY = "JOHN_DOE";
@@ -54,19 +59,19 @@ public class ITTusFileUploadService {
 
   protected static Path storagePath;
 
-  @BeforeClass
-  public static void setupDataFolder() throws IOException {
+  @BeforeAll
+  static void setupDataFolder() throws IOException {
     storagePath = Paths.get("target", "tus", "data").toAbsolutePath();
     Files.createDirectories(storagePath);
   }
 
-  @AfterClass
-  public static void destroyDataFolder() throws IOException {
+  @AfterAll
+  static void destroyDataFolder() throws IOException {
     FileUtils.deleteDirectory(storagePath.toFile());
   }
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     reset();
     tusFileUploadService =
         new TusFileUploadService()
@@ -86,7 +91,8 @@ public class ITTusFileUploadService {
   }
 
   @Test
-  public void testSupportedHttpMethods() {
+  @SneakyThrows
+  void testSupportedHttpMethods() {
     assertThat(
         tusFileUploadService.getSupportedHttpMethods(),
         containsInAnyOrder(
@@ -110,7 +116,8 @@ public class ITTusFileUploadService {
   }
 
   @Test
-  public void testDisableFeature() throws Exception {
+  @SneakyThrows
+  void testDisableFeature() {
     tusFileUploadService.disableTusExtension("download");
     tusFileUploadService.disableTusExtension("termination");
 
@@ -143,18 +150,23 @@ public class ITTusFileUploadService {
     assertResponseStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testDisableCore() {
-    tusFileUploadService.disableTusExtension("core");
-  }
-
-  @Test(expected = NullPointerException.class)
-  public void testWithFileStoreServiceNull() throws Exception {
-    tusFileUploadService.withUploadStorageService(null);
+  @Test
+  @SneakyThrows
+  void testDisableCore() {
+    assertThatThrownBy(() -> tusFileUploadService.disableTusExtension("core"))
+        .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
-  public void testProcessCompleteUpload() throws Exception {
+  @SneakyThrows
+  void testWithFileStoreServiceNull() {
+    assertThatThrownBy(() -> tusFileUploadService.withUploadStorageService(null))
+        .isInstanceOf(NullPointerException.class);
+  }
+
+  @Test
+  @SneakyThrows
+  void testProcessCompleteUpload() {
     String uploadContent = "This is my test upload content";
 
     // Create upload
@@ -225,12 +237,10 @@ public class ITTusFileUploadService {
     assertThat(info.getCreatorIpAddresses(), is("10.0.2.1, 123.231.12.4, 192.168.1.1"));
 
     // Try retrieving the uploaded bytes without owner key
-    try {
-      tusFileUploadService.getUploadedBytes(location);
-      fail();
-    } catch (TusException ex) {
-      assertThat(ex.getStatus(), is(404));
-    }
+    assertThatCode(() -> tusFileUploadService.getUploadedBytes(location))
+        .isInstanceOf(TusException.class)
+        .asInstanceOf(throwable(TusException.class))
+        .returns(404, TusException::getStatus);
 
     // Get uploaded bytes from service
     try (InputStream uploadedBytes = tusFileUploadService.getUploadedBytes(location, OWNER_KEY)) {
@@ -271,7 +281,8 @@ public class ITTusFileUploadService {
   }
 
   @Test
-  public void testTerminateViaHttpRequest() throws Exception {
+  @SneakyThrows
+  void testTerminateViaHttpRequest() {
     String uploadContent = "This is my terminated test upload";
 
     // Create upload
@@ -351,13 +362,20 @@ public class ITTusFileUploadService {
   }
 
   @Test
-  public void testProcessUploadTwoParts() throws Exception {
+  @SneakyThrows
+  void testProcessUploadTwoParts() {
     String part1 =
-        "29\r\nThis is the first part of my test upload "
-            + "\r\n0\r\nUpload-Checksum: sha1 n5RQbRwM6UVAD+9iuHEmnN6HCGQ=";
+        """
+        29\r
+        This is the first part of my test upload \r
+        0\r
+        Upload-Checksum: sha1 n5RQbRwM6UVAD+9iuHEmnN6HCGQ=""";
     String part2 =
-        "1C\r\nand this is the second part."
-            + "\r\n0\r\nUpload-Checksum: sha1 oNge323kGFKICxp+Me5xJgPvGEM=";
+        """
+        1C\r
+        and this is the second part.\r
+        0\r
+        Upload-Checksum: sha1 oNge323kGFKICxp+Me5xJgPvGEM=""";
 
     // Create upload
     servletRequest.setMethod("POST");
@@ -476,7 +494,8 @@ public class ITTusFileUploadService {
   }
 
   @Test
-  public void testProcessUploadDeferredLength() throws Exception {
+  @SneakyThrows
+  void testProcessUploadDeferredLength() throws IOException, ParseException, TusException {
     String part1 = "When sending this part, we don't know the length and ";
     String part2 = "when sending this part, we know the length but the upload is not complete. ";
     String part3 = "Finally when sending the third part, the upload is complete.";
@@ -658,11 +677,20 @@ public class ITTusFileUploadService {
   }
 
   @Test
-  public void testProcessUploadInvalidChecksumSecondPart() throws Exception {
+  @SneakyThrows
+  void testProcessUploadInvalidChecksumSecondPart() {
     String part1 =
-        "29\r\nThis is the first part of my test upload "
-            + "\r\n0\r\nUPLOAD-CHECKSUM: sha1 n5RQbRwM6UVAD+9iuHEmnN6HCGQ=";
-    String part2 = "1C\r\nand this is the second part." + "\r\n0\r\nupload-checksum: sha1 invalid";
+        """
+        29\r
+        This is the first part of my test upload \r
+        0\r
+        UPLOAD-CHECKSUM: sha1 n5RQbRwM6UVAD+9iuHEmnN6HCGQ=""";
+    String part2 =
+        """
+        1C\r
+        and this is the second part.\r
+        0\r
+        upload-checksum: sha1 invalid""";
 
     // Create upload
     servletRequest.setMethod("POST");
@@ -784,7 +812,8 @@ public class ITTusFileUploadService {
   }
 
   @Test
-  public void testCleanupExpiredUpload() throws Exception {
+  @SneakyThrows
+  void testCleanupExpiredUpload() {
     // Set the expiration period to 500 ms
     tusFileUploadService.withUploadExpirationPeriod(500L);
 
@@ -850,13 +879,20 @@ public class ITTusFileUploadService {
   }
 
   @Test
-  public void testConcatenationCompleted() throws Exception {
+  @SneakyThrows
+  void testConcatenationCompleted() {
     String part1 =
-        "29\r\nThis is the first part of my test upload "
-            + "\r\n0\r\nUpload-Checksum: sha1 n5RQbRwM6UVAD+9iuHEmnN6HCGQ=";
+        """
+        29\r
+        This is the first part of my test upload \r
+        0\r
+        Upload-Checksum: sha1 n5RQbRwM6UVAD+9iuHEmnN6HCGQ=""";
     String part2 =
-        "1C\r\nand this is the second part."
-            + "\r\n0\r\nUpload-Checksum: sha1 oNge323kGFKICxp+Me5xJgPvGEM=";
+        """
+        1C\r
+        and this is the second part.\r
+        0\r
+        Upload-Checksum: sha1 oNge323kGFKICxp+Me5xJgPvGEM=""";
 
     // Create first upload
     servletRequest.setMethod("POST");
@@ -1022,7 +1058,8 @@ public class ITTusFileUploadService {
   }
 
   @Test
-  public void testConcatenationUnfinished() throws Exception {
+  @SneakyThrows
+  void testConcatenationUnfinished() {
     String part1 = "When sending this part, the final upload was already created. ";
     String part2 = "This is the second part of our concatenated upload. ";
     String part3 = "Finally when sending the third part, the final upload is complete.";
@@ -1242,9 +1279,17 @@ public class ITTusFileUploadService {
   }
 
   @Test
-  public void testChunkedDecodingDisabledAndRegexUploadUri() throws Exception {
+  @SneakyThrows
+  void testChunkedDecodingDisabledAndRegexUploadUri() {
     String chunkedContent =
-        "1B;test=value\r\nThis upload looks chunked, \r\n" + "D\r\nbut it's not!\r\n" + "\r\n0\r\n";
+        """
+        1B;test=value\r
+        This upload looks chunked, \r
+        D\r
+        but it's not!\r
+        \r
+        0\r
+        """;
 
     // Create service without chunked decoding
     tusFileUploadService =
@@ -1315,17 +1360,13 @@ public class ITTusFileUploadService {
 
     // Get uploaded bytes from service
     try (InputStream uploadedBytes = tusFileUploadService.getUploadedBytes(location, OWNER_KEY)) {
-      assertThat(
-          IOUtils.toString(uploadedBytes, StandardCharsets.UTF_8),
-          is(
-              "1B;test=value\r\nThis upload looks chunked, \r\n"
-                  + "D\r\nbut it's not!\r\n"
-                  + "\r\n0\r\n"));
+      assertThat(IOUtils.toString(uploadedBytes, StandardCharsets.UTF_8), is(chunkedContent));
     }
   }
 
   @Test
-  public void testOptions() throws Exception {
+  @SneakyThrows
+  void testOptions() {
     // Do options request and check response headers
     servletRequest.setMethod("OPTIONS");
 
@@ -1352,7 +1393,8 @@ public class ITTusFileUploadService {
   }
 
   @Test
-  public void testHeadOnNonExistingUpload() throws Exception {
+  @SneakyThrows
+  void testHeadOnNonExistingUpload() {
     servletRequest.setMethod("HEAD");
     servletRequest.setRequestURI(UPLOAD_URI + "/" + UUID.randomUUID());
     servletRequest.addHeader(HttpHeader.TUS_RESUMABLE, "1.0.0");
@@ -1364,7 +1406,8 @@ public class ITTusFileUploadService {
   }
 
   @Test
-  public void testInvalidTusResumable() throws Exception {
+  @SneakyThrows
+  void testInvalidTusResumable() {
     servletRequest.setMethod("POST");
     servletRequest.setRequestURI(UPLOAD_URI);
     servletRequest.addHeader(HttpHeader.CONTENT_LENGTH, 0);
@@ -1378,7 +1421,8 @@ public class ITTusFileUploadService {
   }
 
   @Test
-  public void testMaxUploadLengthExceeded() throws Exception {
+  @SneakyThrows
+  void testMaxUploadLengthExceeded() {
     tusFileUploadService.withMaxUploadSize(10L);
 
     String uploadContent = "This is upload is too long";
@@ -1397,7 +1441,8 @@ public class ITTusFileUploadService {
   }
 
   @Test
-  public void testInvalidMethods() throws Exception {
+  @SneakyThrows
+  void testInvalidMethods() {
     servletRequest.setMethod("PUT");
     servletRequest.setRequestURI(UPLOAD_URI + "/" + UUID.randomUUID());
     servletRequest.addHeader(HttpHeader.TUS_RESUMABLE, "1.0.0");

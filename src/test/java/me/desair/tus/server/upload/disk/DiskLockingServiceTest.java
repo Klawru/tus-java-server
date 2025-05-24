@@ -4,8 +4,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -16,23 +16,27 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.util.UUID;
+import lombok.SneakyThrows;
 import me.desair.tus.server.upload.UploadId;
 import me.desair.tus.server.upload.UploadIdFactory;
 import me.desair.tus.server.upload.UploadLock;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
-public class DiskLockingServiceTest {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class DiskLockingServiceTest {
 
   public static final String UPLOAD_URL = "/upload/test";
   private DiskLockingService lockingService;
@@ -41,19 +45,19 @@ public class DiskLockingServiceTest {
 
   private static Path storagePath;
 
-  @BeforeClass
-  public static void setupDataFolder() throws IOException {
+  @BeforeAll
+  static void setupDataFolder() throws IOException {
     storagePath = Paths.get("target", "tus", "data").toAbsolutePath();
     Files.createDirectories(storagePath);
   }
 
-  @AfterClass
-  public static void destroyDataFolder() throws IOException {
+  @AfterAll
+  static void destroyDataFolder() throws IOException {
     FileUtils.deleteDirectory(storagePath.toFile());
   }
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     reset(idFactory);
     when(idFactory.getUploadUri()).thenReturn(UPLOAD_URL);
     when(idFactory.createId()).thenReturn(new UploadId(UUID.randomUUID()));
@@ -72,7 +76,8 @@ public class DiskLockingServiceTest {
   }
 
   @Test
-  public void lockUploadByUri() throws Exception {
+  @SneakyThrows
+  void lockUploadByUri() {
     UploadLock uploadLock =
         lockingService.lockUploadByUri("/upload/test/000003f1-a850-49de-af03-997272d834c9");
 
@@ -82,7 +87,8 @@ public class DiskLockingServiceTest {
   }
 
   @Test
-  public void isLockedTrue() throws Exception {
+  @SneakyThrows
+  void isLockedTrue() {
     UploadLock uploadLock =
         lockingService.lockUploadByUri("/upload/test/000003f1-a850-49de-af03-997272d834c9");
 
@@ -93,7 +99,8 @@ public class DiskLockingServiceTest {
   }
 
   @Test
-  public void isLockedFalse() throws Exception {
+  @SneakyThrows
+  void isLockedFalse() {
     UploadLock uploadLock =
         lockingService.lockUploadByUri("/upload/test/000003f1-a850-49de-af03-997272d834c9");
     uploadLock.release();
@@ -103,7 +110,8 @@ public class DiskLockingServiceTest {
   }
 
   @Test
-  public void lockUploadNotExists() throws Exception {
+  @SneakyThrows
+  void lockUploadNotExists() {
     reset(idFactory);
     when(idFactory.readUploadId(nullable(String.class))).thenReturn(null);
 
@@ -114,7 +122,8 @@ public class DiskLockingServiceTest {
   }
 
   @Test
-  public void cleanupStaleLocks() throws Exception {
+  @SneakyThrows
+  void cleanupStaleLocks() {
     Path locksPath = storagePath.resolve("locks");
 
     String activeLock = "000003f1-a850-49de-af03-997272d834c9";

@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.UUID;
+import lombok.SneakyThrows;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
 import me.desair.tus.server.upload.UploadId;
@@ -18,13 +19,15 @@ import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadStorageService;
 import me.desair.tus.server.util.TusServletRequest;
 import me.desair.tus.server.util.TusServletResponse;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -34,8 +37,9 @@ import org.springframework.mock.web.MockHttpServletResponse;
  * MUST set the Location header to the URL of the created resource. This URL MAY be absolute or
  * relative.
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
-public class CreationPostRequestHandlerTest {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class CreationPostRequestHandlerTest {
 
   private CreationPostRequestHandler handler;
 
@@ -45,15 +49,16 @@ public class CreationPostRequestHandlerTest {
 
   @Mock private UploadStorageService uploadStorageService;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     servletRequest = new MockHttpServletRequest();
     servletResponse = new MockHttpServletResponse();
     handler = new CreationPostRequestHandler();
   }
 
   @Test
-  public void supports() throws Exception {
+  @SneakyThrows
+  void supports() {
     assertThat(handler.supports(HttpMethod.GET), is(false));
     assertThat(handler.supports(HttpMethod.POST), is(true));
     assertThat(handler.supports(HttpMethod.PUT), is(false));
@@ -65,7 +70,8 @@ public class CreationPostRequestHandlerTest {
   }
 
   @Test
-  public void processWithLengthAndMetadata() throws Exception {
+  @SneakyThrows
+  void processWithLengthAndMetadata() {
     servletRequest.setRequestURI("/test/upload");
     servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, 10L);
     servletRequest.addHeader(HttpHeader.UPLOAD_METADATA, "encoded-metadata");
@@ -96,16 +102,16 @@ public class CreationPostRequestHandlerTest {
 
     verify(uploadStorageService, times(1))
         .create(ArgumentMatchers.any(UploadInfo.class), nullable(String.class));
-    assertThat(
-        servletResponse.getHeader(HttpHeader.LOCATION), endsWith("/test/upload/" + id.toString()));
+    assertThat(servletResponse.getHeader(HttpHeader.LOCATION), endsWith("/test/upload/" + id));
     assertThat(servletResponse.getStatus(), is(HttpServletResponse.SC_CREATED));
   }
 
   @Test
-  public void processWithLengthAndNoMetadata() throws Exception {
+  @SneakyThrows
+  void processWithLengthAndNoMetadata() {
     servletRequest.setRequestURI("/test/upload");
     servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, 10L);
-    // servletRequest.addHeader(HttpHeader.UPLOAD_METADATA, null);
+    // servletRequest.addHeader(HttpHeader.UPLOAD_METADATA, null)
 
     final UploadId id = new UploadId(UUID.randomUUID());
     when(uploadStorageService.create(
@@ -133,15 +139,15 @@ public class CreationPostRequestHandlerTest {
 
     verify(uploadStorageService, times(1))
         .create(ArgumentMatchers.any(UploadInfo.class), nullable(String.class));
-    assertThat(
-        servletResponse.getHeader(HttpHeader.LOCATION), endsWith("/test/upload/" + id.toString()));
+    assertThat(servletResponse.getHeader(HttpHeader.LOCATION), endsWith("/test/upload/" + id));
     assertThat(servletResponse.getStatus(), is(HttpServletResponse.SC_CREATED));
   }
 
   @Test
-  public void processWithNoLengthAndMetadata() throws Exception {
+  @SneakyThrows
+  void processWithNoLengthAndMetadata() {
     servletRequest.setRequestURI("/test/upload");
-    // servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, null);
+    // servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, null)
     servletRequest.addHeader(HttpHeader.UPLOAD_METADATA, "encoded-metadata");
 
     final UploadId id = new UploadId(UUID.randomUUID());
@@ -170,16 +176,16 @@ public class CreationPostRequestHandlerTest {
 
     verify(uploadStorageService, times(1))
         .create(ArgumentMatchers.any(UploadInfo.class), nullable(String.class));
-    assertThat(
-        servletResponse.getHeader(HttpHeader.LOCATION), endsWith("/test/upload/" + id.toString()));
+    assertThat(servletResponse.getHeader(HttpHeader.LOCATION), endsWith("/test/upload/" + id));
     assertThat(servletResponse.getStatus(), is(HttpServletResponse.SC_CREATED));
   }
 
   @Test
-  public void processWithNoLengthAndNoMetadata() throws Exception {
+  @SneakyThrows
+  void processWithNoLengthAndNoMetadata() {
     servletRequest.setRequestURI("/test/upload");
-    // servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, null);
-    // servletRequest.addHeader(HttpHeader.UPLOAD_METADATA, null);
+    // servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, null)
+    // servletRequest.addHeader(HttpHeader.UPLOAD_METADATA, null)
 
     final UploadId id = new UploadId(UUID.randomUUID());
     when(uploadStorageService.create(
@@ -207,8 +213,7 @@ public class CreationPostRequestHandlerTest {
 
     verify(uploadStorageService, times(1))
         .create(ArgumentMatchers.any(UploadInfo.class), nullable(String.class));
-    assertThat(
-        servletResponse.getHeader(HttpHeader.LOCATION), endsWith("/test/upload/" + id.toString()));
+    assertThat(servletResponse.getHeader(HttpHeader.LOCATION), endsWith("/test/upload/" + id));
     assertThat(servletResponse.getStatus(), is(HttpServletResponse.SC_CREATED));
   }
 }

@@ -19,15 +19,18 @@ import me.desair.tus.server.util.AbstractTusExtension;
 import me.desair.tus.server.util.TusServletRequest;
 import me.desair.tus.server.util.TusServletResponse;
 import org.apache.commons.io.IOUtils;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public abstract class AbstractTusExtensionIntegrationTest {
 
   private static final Logger log =
@@ -54,7 +57,7 @@ public abstract class AbstractTusExtensionIntegrationTest {
   }
 
   protected void setRequestHeaders(String... headers) {
-    if (headers != null && headers.length > 0) {
+    if (headers != null) {
       for (String header : headers) {
         switch (header) {
           case HttpHeader.TUS_RESUMABLE:
@@ -71,7 +74,7 @@ public abstract class AbstractTusExtensionIntegrationTest {
                 HttpHeader.CONTENT_LENGTH, uploadInfo.getLength() - uploadInfo.getOffset());
             break;
           default:
-            log.warn("Undefined HTTP header " + header);
+            log.warn("Undefined HTTP header {}", header);
             break;
         }
       }

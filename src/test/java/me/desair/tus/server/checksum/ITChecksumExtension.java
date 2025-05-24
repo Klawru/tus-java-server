@@ -1,24 +1,28 @@
 package me.desair.tus.server.checksum;
 
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import java.io.IOException;
+import lombok.SneakyThrows;
 import me.desair.tus.server.AbstractTusExtensionIntegrationTest;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
 import me.desair.tus.server.exception.ChecksumAlgorithmNotSupportedException;
+import me.desair.tus.server.exception.TusException;
 import me.desair.tus.server.exception.UploadChecksumMismatchException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-public class ITChecksumExtension extends AbstractTusExtensionIntegrationTest {
+class ITChecksumExtension extends AbstractTusExtensionIntegrationTest {
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() {
     servletRequest = spy(new MockHttpServletRequest());
     servletResponse = new MockHttpServletResponse();
     tusFeature = new ChecksumExtension();
@@ -26,7 +30,8 @@ public class ITChecksumExtension extends AbstractTusExtensionIntegrationTest {
   }
 
   @Test
-  public void testOptions() throws Exception {
+  @SneakyThrows
+  void testOptions() {
     setRequestHeaders();
 
     executeCall(HttpMethod.OPTIONS, false);
@@ -36,39 +41,41 @@ public class ITChecksumExtension extends AbstractTusExtensionIntegrationTest {
         HttpHeader.TUS_CHECKSUM_ALGORITHM, "md5", "sha1", "sha256", "sha384", "sha512");
   }
 
-  @Test(expected = ChecksumAlgorithmNotSupportedException.class)
-  public void testInvalidAlgorithm() throws Exception {
+  @Test
+  @SneakyThrows
+  void testInvalidAlgorithm() {
     servletRequest.addHeader(HttpHeader.UPLOAD_CHECKSUM, "test 1234567890");
     servletRequest.setContent("Test content".getBytes());
 
-    executeCall(HttpMethod.PATCH, false);
+    assertThatThrownBy(() -> executeCall(HttpMethod.PATCH, false))
+        .isInstanceOf(ChecksumAlgorithmNotSupportedException.class);
   }
 
   @Test
-  public void testValidChecksumTrailerHeader() throws Exception {
+  @SneakyThrows
+  void testValidChecksumTrailerHeader() {
     String content =
-        "8\r\n"
-            + "Mozilla \r\n"
-            + "A\r\n"
-            + "Developer \r\n"
-            + "7\r\n"
-            + "Network\r\n"
-            + "0\r\n"
-            + "Upload-Checksum: sha1 zYR9iS5Rya+WoH1fEyfKqqdPWWE=\r\n"
-            + "\r\n";
+        """
+        8\r
+        Mozilla \r
+        A\r
+        Developer \r
+        7\r
+        Network\r
+        0\r
+        Upload-Checksum: sha1 zYR9iS5Rya+WoH1fEyfKqqdPWWE=\r
+        \r
+        """;
 
     servletRequest.addHeader(HttpHeader.TRANSFER_ENCODING, "chunked");
     servletRequest.setContent(content.getBytes());
 
-    try {
-      executeCall(HttpMethod.PATCH, true);
-    } catch (Exception ex) {
-      fail();
-    }
+    assertThatCode(() -> executeCall(HttpMethod.PATCH, true)).doesNotThrowAnyException();
   }
 
   @Test
-  public void testValidChecksumNormalHeader() throws Exception {
+  @SneakyThrows
+  void testValidChecksumNormalHeader() throws TusException, IOException {
     String content = "Mozilla Developer Network";
 
     servletRequest.addHeader(HttpHeader.UPLOAD_CHECKSUM, "sha1 zYR9iS5Rya+WoH1fEyfKqqdPWWE=");
@@ -79,45 +86,47 @@ public class ITChecksumExtension extends AbstractTusExtensionIntegrationTest {
     verify(servletRequest, atLeastOnce()).getHeader(HttpHeader.UPLOAD_CHECKSUM);
   }
 
-  @Test(expected = UploadChecksumMismatchException.class)
-  public void testInvalidChecksumTrailerHeader() throws Exception {
+  @Test
+  @SneakyThrows
+  void testInvalidChecksumTrailerHeader() {
     String content =
-        "8\r\n"
-            + "Mozilla \r\n"
-            + "A\r\n"
-            + "Developer \r\n"
-            + "7\r\n"
-            + "Network\r\n"
-            + "0\r\n"
-            + "Upload-Checksum: sha1 zYR9iS5Rya+WoH1fEyfKqqdPWW=\r\n"
-            + "\r\n";
+        """
+        8\r
+        Mozilla \r
+        A\r
+        Developer \r
+        7\r
+        Network\r
+        0\r
+        Upload-Checksum: sha1 zYR9iS5Rya+WoH1fEyfKqqdPWW=\r
+        \r
+        """;
 
     servletRequest.addHeader(HttpHeader.TRANSFER_ENCODING, "chunked");
     servletRequest.setContent(content.getBytes());
-
-    executeCall(HttpMethod.PATCH, true);
+    assertThatThrownBy(() -> executeCall(HttpMethod.PATCH, true))
+        .isInstanceOf(UploadChecksumMismatchException.class);
   }
 
-  @Test(expected = UploadChecksumMismatchException.class)
-  public void testInvalidChecksumNormalHeader() throws Exception {
+  @Test
+  @SneakyThrows
+  void testInvalidChecksumNormalHeader() {
     String content = "Mozilla Developer Network";
 
     servletRequest.addHeader(HttpHeader.UPLOAD_CHECKSUM, "sha1 zYR9iS5Rya+WoH1fEyfKqqdPWW=");
     servletRequest.setContent(content.getBytes());
 
-    executeCall(HttpMethod.PATCH, true);
+    assertThatThrownBy(() -> executeCall(HttpMethod.PATCH, true))
+        .isInstanceOf(UploadChecksumMismatchException.class);
   }
 
   @Test
-  public void testNoChecksum() throws Exception {
+  @SneakyThrows
+  void testNoChecksum() {
     String content = "Mozilla Developer Network";
 
     servletRequest.setContent(content.getBytes());
 
-    try {
-      executeCall(HttpMethod.PATCH, true);
-    } catch (Exception ex) {
-      fail();
-    }
+    assertThatCode(() -> executeCall(HttpMethod.PATCH, true)).doesNotThrowAnyException();
   }
 }

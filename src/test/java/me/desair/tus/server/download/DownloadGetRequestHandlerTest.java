@@ -1,5 +1,6 @@
 package me.desair.tus.server.download;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -12,6 +13,7 @@ import static org.mockito.Mockito.when;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
 import java.util.UUID;
+import lombok.SneakyThrows;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
 import me.desair.tus.server.exception.UploadInProgressException;
@@ -20,16 +22,19 @@ import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadStorageService;
 import me.desair.tus.server.util.TusServletRequest;
 import me.desair.tus.server.util.TusServletResponse;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
-public class DownloadGetRequestHandlerTest {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class DownloadGetRequestHandlerTest {
 
   private DownloadGetRequestHandler handler;
 
@@ -39,15 +44,16 @@ public class DownloadGetRequestHandlerTest {
 
   @Mock private UploadStorageService uploadStorageService;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     servletRequest = new MockHttpServletRequest();
     servletResponse = new MockHttpServletResponse();
     handler = new DownloadGetRequestHandler();
   }
 
   @Test
-  public void supports() throws Exception {
+  @SneakyThrows
+  void supports() {
     assertThat(handler.supports(HttpMethod.GET), is(true));
     assertThat(handler.supports(HttpMethod.POST), is(false));
     assertThat(handler.supports(HttpMethod.PUT), is(false));
@@ -59,7 +65,8 @@ public class DownloadGetRequestHandlerTest {
   }
 
   @Test
-  public void testWithCompletedUploadWithMetadata() throws Exception {
+  @SneakyThrows
+  void testWithCompletedUploadWithMetadata() {
     final UploadId id = new UploadId(UUID.randomUUID());
 
     UploadInfo info = new UploadInfo();
@@ -102,7 +109,8 @@ public class DownloadGetRequestHandlerTest {
   }
 
   @Test
-  public void testWithCompletedUploadWithoutMetadata() throws Exception {
+  @SneakyThrows
+  void testWithCompletedUploadWithoutMetadata() {
     final UploadId id = new UploadId(UUID.randomUUID());
 
     UploadInfo info = new UploadInfo();
@@ -125,12 +133,13 @@ public class DownloadGetRequestHandlerTest {
     assertThat(servletResponse.getHeader(HttpHeader.CONTENT_LENGTH), is("10"));
     assertThat(
         servletResponse.getHeader(HttpHeader.CONTENT_DISPOSITION),
-        is("attachment; filename=\"" + id.toString() + "\"; filename*=UTF-8''" + id.toString()));
+        is("attachment; filename=\"" + id + "\"; filename*=UTF-8''" + id));
     assertThat(servletResponse.getHeader(HttpHeader.CONTENT_TYPE), is("application/octet-stream"));
   }
 
-  @Test(expected = UploadInProgressException.class)
-  public void testWithInProgressUpload() throws Exception {
+  @Test
+  @SneakyThrows
+  void testWithInProgressUpload() {
     final UploadId id = new UploadId(UUID.randomUUID());
 
     UploadInfo info = new UploadInfo();
@@ -140,29 +149,35 @@ public class DownloadGetRequestHandlerTest {
     info.setEncodedMetadata("name dGVzdC5qcGc=,type aW1hZ2UvanBlZw==");
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
-
-    handler.process(
-        HttpMethod.GET,
-        new TusServletRequest(servletRequest),
-        new TusServletResponse(servletResponse),
-        uploadStorageService,
-        null);
+    assertThatThrownBy(
+            () ->
+                handler.process(
+                    HttpMethod.GET,
+                    new TusServletRequest(servletRequest),
+                    new TusServletResponse(servletResponse),
+                    uploadStorageService,
+                    null))
+        .isInstanceOf(UploadInProgressException.class);
   }
 
-  @Test(expected = UploadInProgressException.class)
-  public void testWithUnknownUpload() throws Exception {
+  @Test
+  @SneakyThrows
+  void testWithUnknownUpload() {
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(null);
 
-    handler.process(
-        HttpMethod.GET,
-        new TusServletRequest(servletRequest),
-        new TusServletResponse(servletResponse),
-        uploadStorageService,
-        null);
+    assertThatThrownBy(
+            () ->
+                handler.process(
+                    HttpMethod.GET,
+                    new TusServletRequest(servletRequest),
+                    new TusServletResponse(servletResponse),
+                    uploadStorageService,
+                    null))
+        .isInstanceOf(UploadInProgressException.class);
 
     verify(uploadStorageService, never())
         .copyUploadTo(any(UploadInfo.class), any(OutputStream.class));
-    assertThat(servletResponse.getStatus(), is(HttpServletResponse.SC_NO_CONTENT));
+    assertThat(servletResponse.getStatus(), is(HttpServletResponse.SC_OK));
   }
 }

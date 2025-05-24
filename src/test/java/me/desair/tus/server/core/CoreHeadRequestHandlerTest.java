@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.SneakyThrows;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
 import me.desair.tus.server.upload.UploadInfo;
@@ -14,16 +15,19 @@ import me.desair.tus.server.upload.UploadStorageService;
 import me.desair.tus.server.upload.UploadType;
 import me.desair.tus.server.util.TusServletRequest;
 import me.desair.tus.server.util.TusServletResponse;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
-public class CoreHeadRequestHandlerTest {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class CoreHeadRequestHandlerTest {
 
   private CoreHeadRequestHandler handler;
 
@@ -33,15 +37,16 @@ public class CoreHeadRequestHandlerTest {
 
   @Mock private UploadStorageService uploadStorageService;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     servletRequest = new MockHttpServletRequest();
     servletResponse = new MockHttpServletResponse();
     handler = new CoreHeadRequestHandler();
   }
 
   @Test
-  public void processWithLength() throws Exception {
+  @SneakyThrows
+  void processWithLength() {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
     info.setLength(10L);
@@ -62,7 +67,8 @@ public class CoreHeadRequestHandlerTest {
   }
 
   @Test
-  public void processConcatenatedWithLength() throws Exception {
+  @SneakyThrows
+  void processConcatenatedWithLength() {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
     info.setLength(10L);
@@ -84,7 +90,8 @@ public class CoreHeadRequestHandlerTest {
   }
 
   @Test
-  public void processWithoutLength() throws Exception {
+  @SneakyThrows
+  void processWithoutLength() {
     UploadInfo info = new UploadInfo();
     info.setOffset(0L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
@@ -104,7 +111,8 @@ public class CoreHeadRequestHandlerTest {
   }
 
   @Test
-  public void supports() throws Exception {
+  @SneakyThrows
+  void supports() {
     assertThat(handler.supports(HttpMethod.GET), is(false));
     assertThat(handler.supports(HttpMethod.POST), is(false));
     assertThat(handler.supports(HttpMethod.PUT), is(false));

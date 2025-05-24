@@ -8,39 +8,43 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.text.ParseException;
 import java.util.Stack;
 import java.util.UUID;
+import lombok.SneakyThrows;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.util.Utils;
 import org.apache.commons.lang3.time.DateFormatUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 /** Test cases for the UploadInfo class. */
-public class UploadInfoTest {
+class UploadInfoTest {
 
   @Test
-  public void hasMetadata() throws Exception {
+  @SneakyThrows
+  void hasMetadata() {
     UploadInfo info = new UploadInfo();
     info.setEncodedMetadata("Encoded Metadata");
     assertTrue(info.hasMetadata());
   }
 
   @Test
-  public void hasMetadataFalse() throws Exception {
+  @SneakyThrows
+  void hasMetadataFalse() {
     UploadInfo info = new UploadInfo();
     info.setEncodedMetadata(null);
     assertFalse(info.hasMetadata());
   }
 
   @Test
-  public void testGetMetadataMultipleValues() throws Exception {
+  @SneakyThrows
+  void testGetMetadataMultipleValues() {
     UploadInfo info = new UploadInfo();
     info.setEncodedMetadata(
         "filename d29ybGRfZG9taW5hdGlvbiBwbGFuLnBkZg==,"
@@ -61,7 +65,8 @@ public class UploadInfoTest {
   }
 
   @Test
-  public void testGetMetadataSingleValues() throws Exception {
+  @SneakyThrows
+  void testGetMetadataSingleValues() {
     UploadInfo info = new UploadInfo();
     info.setEncodedMetadata("filename d29ybGRfZG9taW5hdGlvbl9wbGFuLnBkZg==");
 
@@ -70,28 +75,32 @@ public class UploadInfoTest {
   }
 
   @Test
-  public void testGetMetadataNull() throws Exception {
+  @SneakyThrows
+  void testGetMetadataNull() {
     UploadInfo info = new UploadInfo();
     info.setEncodedMetadata(null);
     assertTrue(info.getMetadata().isEmpty());
   }
 
   @Test
-  public void hasLength() throws Exception {
+  @SneakyThrows
+  void hasLength() {
     UploadInfo info = new UploadInfo();
     info.setLength(10L);
     assertTrue(info.hasLength());
   }
 
   @Test
-  public void hasLengthFalse() throws Exception {
+  @SneakyThrows
+  void hasLengthFalse() {
     UploadInfo info = new UploadInfo();
     info.setLength(null);
     assertFalse(info.hasLength());
   }
 
   @Test
-  public void isUploadInProgressNoLengthNoOffset() throws Exception {
+  @SneakyThrows
+  void isUploadInProgressNoLengthNoOffset() {
     UploadInfo info = new UploadInfo();
     info.setLength(null);
     info.setOffset(null);
@@ -99,7 +108,8 @@ public class UploadInfoTest {
   }
 
   @Test
-  public void isUploadInProgressNoLengthWithOffset() throws Exception {
+  @SneakyThrows
+  void isUploadInProgressNoLengthWithOffset() {
     UploadInfo info = new UploadInfo();
     info.setLength(null);
     info.setOffset(10L);
@@ -107,7 +117,8 @@ public class UploadInfoTest {
   }
 
   @Test
-  public void isUploadInProgressOffsetDoesNotMatchLength() throws Exception {
+  @SneakyThrows
+  void isUploadInProgressOffsetDoesNotMatchLength() {
     UploadInfo info = new UploadInfo();
     info.setLength(10L);
     info.setOffset(8L);
@@ -115,7 +126,8 @@ public class UploadInfoTest {
   }
 
   @Test
-  public void isUploadInProgressOffsetMatchesLength() throws Exception {
+  @SneakyThrows
+  void isUploadInProgressOffsetMatchesLength() {
     UploadInfo info = new UploadInfo();
     info.setLength(10L);
     info.setOffset(10L);
@@ -123,7 +135,8 @@ public class UploadInfoTest {
   }
 
   @Test
-  public void testEquals() throws Exception {
+  @SneakyThrows
+  void testEquals() {
     UploadInfo info1 = new UploadInfo();
     info1.setLength(10L);
     info1.setOffset(5L);
@@ -162,7 +175,7 @@ public class UploadInfoTest {
 
     assertEquals(info1, info1);
     assertEquals(info1, info2);
-    assertNotEquals(info1, null);
+    assertNotEquals(null, info1);
     assertNotEquals(info1, new Object());
     assertNotEquals(info1, info3);
     assertNotEquals(info1, info4);
@@ -171,7 +184,8 @@ public class UploadInfoTest {
   }
 
   @Test
-  public void testHashCode() throws Exception {
+  @SneakyThrows
+  void testHashCode() {
     UploadInfo info1 = new UploadInfo();
     info1.setLength(10L);
     info1.setOffset(5L);
@@ -188,7 +202,8 @@ public class UploadInfoTest {
   }
 
   @Test
-  public void testGetNameAndTypeWithMetadata() throws Exception {
+  @SneakyThrows
+  void testGetNameAndTypeWithMetadata() {
     UploadInfo info = new UploadInfo();
     info.setEncodedMetadata("name dGVzdC5qcGc=,type aW1hZ2UvanBlZw==");
 
@@ -197,7 +212,8 @@ public class UploadInfoTest {
   }
 
   @Test
-  public void testGetNameAndTypeWithoutMetadata() throws Exception {
+  @SneakyThrows
+  void testGetNameAndTypeWithoutMetadata() {
     UploadInfo info = new UploadInfo();
     final UploadId id = new UploadId(UUID.randomUUID());
     info.setId(id);
@@ -207,7 +223,8 @@ public class UploadInfoTest {
   }
 
   @Test
-  public void testExpiration() throws Exception {
+  @SneakyThrows
+  void testExpiration() {
     UploadInfo info1 = new UploadInfo();
     assertFalse(info1.isExpired());
 
@@ -250,7 +267,8 @@ public class UploadInfoTest {
   }
 
   @Test
-  public void testGetCreationTimestamp() throws Exception {
+  @SneakyThrows
+  void testGetCreationTimestamp() {
     UploadInfo info = new UploadInfo();
     Utils.sleep(10);
 
@@ -259,13 +277,15 @@ public class UploadInfoTest {
   }
 
   @Test
-  public void testGetCreatorIpAddressesNull() throws Exception {
+  @SneakyThrows
+  void testGetCreatorIpAddressesNull() {
     UploadInfo info = new UploadInfo();
     assertThat(info.getCreatorIpAddresses(), nullValue());
   }
 
   @Test
-  public void testGetCreatorIpAddressesWithoutXforwardedFor() throws Exception {
+  @SneakyThrows
+  void testGetCreatorIpAddressesWithoutXforwardedFor() {
     MockHttpServletRequest servletRequest = new MockHttpServletRequest();
     servletRequest.setRemoteAddr("10.11.12.13");
 
@@ -274,7 +294,8 @@ public class UploadInfoTest {
   }
 
   @Test
-  public void testGetCreatorIpAddressesWithXforwardedFor() throws Exception {
+  @SneakyThrows
+  void testGetCreatorIpAddressesWithXforwardedFor() {
     MockHttpServletRequest servletRequest = new MockHttpServletRequest();
     servletRequest.setRemoteAddr("10.11.12.13");
     servletRequest.addHeader(HttpHeader.X_FORWARDED_FOR, "24.23.22.21, 192.168.1.1");

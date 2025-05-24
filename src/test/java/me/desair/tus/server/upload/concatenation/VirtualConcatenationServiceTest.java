@@ -1,5 +1,6 @@
 package me.desair.tus.server.upload.concatenation;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -12,32 +13,37 @@ import static org.mockito.Mockito.when;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.UUID;
+import lombok.SneakyThrows;
 import me.desair.tus.server.exception.UploadNotFoundException;
 import me.desair.tus.server.upload.UploadId;
 import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadStorageService;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
-public class VirtualConcatenationServiceTest {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class VirtualConcatenationServiceTest {
 
   @Mock private UploadStorageService uploadStorageService;
 
   private VirtualConcatenationService concatenationService;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     concatenationService = new VirtualConcatenationService(uploadStorageService);
   }
 
   @Test
-  public void merge() throws Exception {
+  @SneakyThrows
+  void merge() {
     UploadInfo child1 = new UploadInfo();
     child1.setId(new UploadId(UUID.randomUUID()));
     child1.setLength(5L);
@@ -71,7 +77,8 @@ public class VirtualConcatenationServiceTest {
   }
 
   @Test
-  public void mergeNotCompleted() throws Exception {
+  @SneakyThrows
+  void mergeNotCompleted() {
     UploadInfo child1 = new UploadInfo();
     child1.setId(new UploadId(UUID.randomUUID()));
     child1.setLength(5L);
@@ -105,7 +112,8 @@ public class VirtualConcatenationServiceTest {
   }
 
   @Test
-  public void mergeWithoutLength() throws Exception {
+  @SneakyThrows
+  void mergeWithoutLength() {
     UploadInfo child1 = new UploadInfo();
     child1.setId(new UploadId(UUID.randomUUID()));
     child1.setLength(null);
@@ -138,8 +146,9 @@ public class VirtualConcatenationServiceTest {
     verify(uploadStorageService, never()).update(infoParent);
   }
 
-  @Test(expected = UploadNotFoundException.class)
-  public void mergeNotFound() throws Exception {
+  @Test
+  @SneakyThrows
+  void mergeNotFound() {
     UploadInfo child1 = new UploadInfo();
     child1.setId(new UploadId(UUID.randomUUID()));
     child1.setLength(5L);
@@ -163,11 +172,13 @@ public class VirtualConcatenationServiceTest {
             infoParent.getId().toString(), infoParent.getOwnerKey()))
         .thenReturn(infoParent);
 
-    concatenationService.merge(infoParent);
+    assertThatThrownBy(() -> concatenationService.merge(infoParent))
+        .isInstanceOf(UploadNotFoundException.class);
   }
 
   @Test
-  public void mergeWithExpiration() throws Exception {
+  @SneakyThrows
+  void mergeWithExpiration() {
     UploadInfo child1 = new UploadInfo();
     child1.setId(new UploadId(UUID.randomUUID()));
     child1.setLength(5L);
@@ -213,7 +224,8 @@ public class VirtualConcatenationServiceTest {
   }
 
   @Test
-  public void getUploadsEmptyFinal() throws Exception {
+  @SneakyThrows
+  void getUploadsEmptyFinal() {
     UploadInfo infoParent = new UploadInfo();
     infoParent.setId(new UploadId(UUID.randomUUID()));
     infoParent.setConcatenationPartIds(null);
@@ -222,7 +234,7 @@ public class VirtualConcatenationServiceTest {
             infoParent.getId().toString(), infoParent.getOwnerKey()))
         .thenReturn(infoParent);
 
-    assertThat(concatenationService.getPartialUploads(infoParent), Matchers.<UploadInfo>empty());
+    assertThat(concatenationService.getPartialUploads(infoParent), Matchers.empty());
 
     assertThat(infoParent.getLength(), is(nullValue()));
     assertThat(infoParent.getOffset(), is(0L));
@@ -232,7 +244,8 @@ public class VirtualConcatenationServiceTest {
   }
 
   @Test
-  public void getConcatenatedBytes() throws Exception {
+  @SneakyThrows
+  void getConcatenatedBytes() {
     String upload1 = "This is a ";
     String upload2 = "concatenated upload!";
 
@@ -271,7 +284,8 @@ public class VirtualConcatenationServiceTest {
   }
 
   @Test
-  public void getConcatenatedBytesNotComplete() throws Exception {
+  @SneakyThrows
+  void getConcatenatedBytesNotComplete() {
     String upload1 = "This is a ";
     String upload2 = "concatenated upload!";
 
@@ -306,8 +320,9 @@ public class VirtualConcatenationServiceTest {
     assertThat(concatenationService.getConcatenatedBytes(infoParent), is(nullValue()));
   }
 
-  @Test(expected = UploadNotFoundException.class)
-  public void getConcatenatedBytesNotFound() throws Exception {
+  @Test
+  @SneakyThrows
+  void getConcatenatedBytesNotFound() {
     String upload1 = "This is a ";
     String upload2 = "concatenated upload!";
 
@@ -339,6 +354,7 @@ public class VirtualConcatenationServiceTest {
     when(uploadStorageService.getUploadedBytes(child2.getId()))
         .thenReturn(IOUtils.toInputStream(upload2, StandardCharsets.UTF_8));
 
-    concatenationService.getConcatenatedBytes(infoParent);
+    assertThatThrownBy(() -> concatenationService.getConcatenatedBytes(infoParent))
+        .isInstanceOf(UploadNotFoundException.class);
   }
 }

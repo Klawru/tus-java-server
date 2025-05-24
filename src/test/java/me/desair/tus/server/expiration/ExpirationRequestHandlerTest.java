@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import java.text.ParseException;
 import java.util.Locale;
 import java.util.TimeZone;
+import lombok.SneakyThrows;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
 import me.desair.tus.server.upload.UploadInfo;
@@ -21,16 +22,19 @@ import me.desair.tus.server.util.TusServletRequest;
 import me.desair.tus.server.util.TusServletResponse;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.commons.lang3.time.TimeZones;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
-public class ExpirationRequestHandlerTest {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class ExpirationRequestHandlerTest {
 
   private static final FastDateFormat DATE_FORMAT =
       FastDateFormat.getInstance(
@@ -44,15 +48,16 @@ public class ExpirationRequestHandlerTest {
 
   @Mock private UploadStorageService uploadStorageService;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     servletRequest = new MockHttpServletRequest();
     servletResponse = new MockHttpServletResponse();
     handler = new ExpirationRequestHandler();
   }
 
   @Test
-  public void supports() throws Exception {
+  @SneakyThrows
+  void supports() {
     assertThat(handler.supports(HttpMethod.GET), is(false));
     assertThat(handler.supports(HttpMethod.POST), is(true));
     assertThat(handler.supports(HttpMethod.PUT), is(false));
@@ -64,7 +69,8 @@ public class ExpirationRequestHandlerTest {
   }
 
   @Test
-  public void testCreatedUpload() throws Exception {
+  @SneakyThrows
+  void testCreatedUpload() {
     UploadInfo info = createUploadInfo();
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
@@ -84,7 +90,8 @@ public class ExpirationRequestHandlerTest {
   }
 
   @Test
-  public void testInProgressUpload() throws Exception {
+  @SneakyThrows
+  void testInProgressUpload() {
     UploadInfo info = createUploadInfo();
     info.setOffset(2L);
     info.setLength(10L);
@@ -105,7 +112,8 @@ public class ExpirationRequestHandlerTest {
   }
 
   @Test
-  public void testNoUpload() throws Exception {
+  @SneakyThrows
+  void testNoUpload() {
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(null);
     when(uploadStorageService.getUploadExpirationPeriod()).thenReturn(172800000L);
@@ -123,7 +131,8 @@ public class ExpirationRequestHandlerTest {
   }
 
   @Test
-  public void testFinishedUpload() throws Exception {
+  @SneakyThrows
+  void testFinishedUpload() {
     UploadInfo info = createUploadInfo();
     info.setOffset(10L);
     info.setLength(10L);
@@ -145,7 +154,8 @@ public class ExpirationRequestHandlerTest {
   }
 
   @Test
-  public void testNullExpiration() throws Exception {
+  @SneakyThrows
+  void testNullExpiration() {
     UploadInfo info = createUploadInfo();
     info.setOffset(8L);
     info.setLength(10L);
@@ -166,7 +176,8 @@ public class ExpirationRequestHandlerTest {
   }
 
   @Test
-  public void testZeroExpiration() throws Exception {
+  @SneakyThrows
+  void testZeroExpiration() {
     UploadInfo info = createUploadInfo();
     info.setOffset(8L);
     info.setLength(10L);
@@ -187,7 +198,8 @@ public class ExpirationRequestHandlerTest {
   }
 
   @Test
-  public void testNegativeExpiration() throws Exception {
+  @SneakyThrows
+  void testNegativeExpiration() {
     UploadInfo info = createUploadInfo();
     info.setOffset(8L);
     info.setLength(10L);

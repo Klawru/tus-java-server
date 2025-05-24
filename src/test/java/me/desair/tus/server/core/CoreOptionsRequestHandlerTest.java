@@ -6,22 +6,26 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.SneakyThrows;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
 import me.desair.tus.server.TusFileUploadService;
 import me.desair.tus.server.upload.UploadStorageService;
 import me.desair.tus.server.util.TusServletRequest;
 import me.desair.tus.server.util.TusServletResponse;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
-public class CoreOptionsRequestHandlerTest {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class CoreOptionsRequestHandlerTest {
 
   private CoreOptionsRequestHandler handler;
 
@@ -31,15 +35,16 @@ public class CoreOptionsRequestHandlerTest {
 
   @Mock private UploadStorageService uploadStorageService;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     servletRequest = new MockHttpServletRequest();
     servletResponse = new MockHttpServletResponse();
     handler = new CoreOptionsRequestHandler();
   }
 
   @Test
-  public void processWithMaxSize() throws Exception {
+  @SneakyThrows
+  void processWithMaxSize() {
     when(uploadStorageService.getMaxUploadSize()).thenReturn(5368709120L);
 
     handler.process(
@@ -57,7 +62,8 @@ public class CoreOptionsRequestHandlerTest {
   }
 
   @Test
-  public void processWithoutMaxSize() throws Exception {
+  @SneakyThrows
+  void processWithoutMaxSize() {
     when(uploadStorageService.getMaxUploadSize()).thenReturn(0L);
 
     handler.process(
@@ -73,7 +79,8 @@ public class CoreOptionsRequestHandlerTest {
   }
 
   @Test
-  public void supports() throws Exception {
+  @SneakyThrows
+  void supports() {
     assertThat(handler.supports(HttpMethod.GET), is(false));
     assertThat(handler.supports(HttpMethod.POST), is(false));
     assertThat(handler.supports(HttpMethod.PUT), is(false));

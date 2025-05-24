@@ -1,15 +1,19 @@
 package me.desair.tus.server;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.EnumSet;
-import org.junit.Test;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 
-public class HttpMethodTest {
+class HttpMethodTest {
 
   @Test
-  public void forName() throws Exception {
+  @SneakyThrows
+  void forName() {
     assertEquals(HttpMethod.DELETE, HttpMethod.forName("delete"));
     assertEquals(HttpMethod.GET, HttpMethod.forName("get"));
     assertEquals(HttpMethod.HEAD, HttpMethod.forName("head"));
@@ -17,11 +21,12 @@ public class HttpMethodTest {
     assertEquals(HttpMethod.POST, HttpMethod.forName("post"));
     assertEquals(HttpMethod.PUT, HttpMethod.forName("put"));
     assertEquals(HttpMethod.OPTIONS, HttpMethod.forName("options"));
-    assertEquals(null, HttpMethod.forName("test"));
+    assertNull(HttpMethod.forName("test"));
   }
 
   @Test
-  public void getMethodNormal() throws Exception {
+  @SneakyThrows
+  void getMethodNormal() {
     MockHttpServletRequest servletRequest = new MockHttpServletRequest();
     servletRequest.setMethod("patch");
 
@@ -31,7 +36,8 @@ public class HttpMethodTest {
   }
 
   @Test
-  public void getMethodOverridden() throws Exception {
+  @SneakyThrows
+  void getMethodOverridden() {
     MockHttpServletRequest servletRequest = new MockHttpServletRequest();
     servletRequest.setMethod("post");
     servletRequest.addHeader(HttpHeader.METHOD_OVERRIDE, "patch");
@@ -42,7 +48,8 @@ public class HttpMethodTest {
   }
 
   @Test
-  public void getMethodOverriddenDoesNotExist() throws Exception {
+  @SneakyThrows
+  void getMethodOverriddenDoesNotExist() {
     MockHttpServletRequest servletRequest = new MockHttpServletRequest();
     servletRequest.setMethod("post");
     servletRequest.addHeader(HttpHeader.METHOD_OVERRIDE, "test");
@@ -52,26 +59,30 @@ public class HttpMethodTest {
         HttpMethod.getMethodIfSupported(servletRequest, EnumSet.allOf(HttpMethod.class)));
   }
 
-  @Test(expected = NullPointerException.class)
-  public void getMethodNull() throws Exception {
-    HttpMethod.getMethodIfSupported(null, EnumSet.allOf(HttpMethod.class));
+  @Test
+  @SneakyThrows
+  void getMethodNull() {
+    EnumSet<HttpMethod> httpMethods = EnumSet.allOf(HttpMethod.class);
+
+    assertThatThrownBy(() -> HttpMethod.getMethodIfSupported(null, httpMethods))
+        .isInstanceOf(NullPointerException.class);
   }
 
   @Test
-  public void getMethodNotSupported() throws Exception {
+  @SneakyThrows
+  void getMethodNotSupported() {
     MockHttpServletRequest servletRequest = new MockHttpServletRequest();
     servletRequest.setMethod("put");
 
-    assertEquals(
-        null, HttpMethod.getMethodIfSupported(servletRequest, EnumSet.noneOf(HttpMethod.class)));
+    assertNull(HttpMethod.getMethodIfSupported(servletRequest, EnumSet.noneOf(HttpMethod.class)));
   }
 
   @Test
-  public void getMethodRequestNotExists() throws Exception {
+  @SneakyThrows
+  void getMethodRequestNotExists() {
     MockHttpServletRequest servletRequest = new MockHttpServletRequest();
     servletRequest.setMethod("test");
 
-    assertEquals(
-        null, HttpMethod.getMethodIfSupported(servletRequest, EnumSet.noneOf(HttpMethod.class)));
+    assertNull(HttpMethod.getMethodIfSupported(servletRequest, EnumSet.noneOf(HttpMethod.class)));
   }
 }

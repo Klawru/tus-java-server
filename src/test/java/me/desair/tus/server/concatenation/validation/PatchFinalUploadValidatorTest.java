@@ -1,28 +1,33 @@
 package me.desair.tus.server.concatenation.validation;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.when;
 
 import java.util.UUID;
+import lombok.SneakyThrows;
 import me.desair.tus.server.HttpMethod;
 import me.desair.tus.server.exception.PatchOnFinalUploadNotAllowedException;
 import me.desair.tus.server.upload.UploadId;
 import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadStorageService;
 import me.desair.tus.server.upload.UploadType;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.mock.web.MockHttpServletRequest;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
-public class PatchFinalUploadValidatorTest {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class PatchFinalUploadValidatorTest {
 
   private PatchFinalUploadValidator validator;
 
@@ -30,14 +35,15 @@ public class PatchFinalUploadValidatorTest {
 
   @Mock private UploadStorageService uploadStorageService;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     servletRequest = new MockHttpServletRequest();
     validator = new PatchFinalUploadValidator();
   }
 
   @Test
-  public void supports() throws Exception {
+  @SneakyThrows
+  void supports() {
     assertThat(validator.supports(HttpMethod.GET), is(false));
     assertThat(validator.supports(HttpMethod.POST), is(false));
     assertThat(validator.supports(HttpMethod.PUT), is(false));
@@ -49,7 +55,8 @@ public class PatchFinalUploadValidatorTest {
   }
 
   @Test
-  public void testValid() throws Exception {
+  @SneakyThrows
+  void testValid() {
     UploadInfo info1 = new UploadInfo();
     info1.setId(new UploadId(UUID.randomUUID()));
     info1.setUploadType(UploadType.REGULAR);
@@ -70,35 +77,35 @@ public class PatchFinalUploadValidatorTest {
         .thenReturn(info3);
 
     // When we validate the requests
-    try {
-      servletRequest.setRequestURI(info1.getId().toString());
-      validator.validate(HttpMethod.PATCH, servletRequest, uploadStorageService, null);
+    servletRequest.setRequestURI(info1.getId().toString());
+    assertThatCode(
+            () -> validator.validate(HttpMethod.PATCH, servletRequest, uploadStorageService, null))
+        .doesNotThrowAnyException();
 
-      servletRequest.setRequestURI(info2.getId().toString());
-      validator.validate(HttpMethod.PATCH, servletRequest, uploadStorageService, null);
+    servletRequest.setRequestURI(info2.getId().toString());
+    assertThatCode(
+            () -> validator.validate(HttpMethod.PATCH, servletRequest, uploadStorageService, null))
+        .doesNotThrowAnyException();
 
-      servletRequest.setRequestURI(info3.getId().toString());
-      validator.validate(HttpMethod.PATCH, servletRequest, uploadStorageService, null);
-    } catch (Exception ex) {
-      fail();
-    }
-
-    // No exception is thrown
+    servletRequest.setRequestURI(info3.getId().toString());
+    assertThatCode(
+            () -> validator.validate(HttpMethod.PATCH, servletRequest, uploadStorageService, null))
+        .doesNotThrowAnyException();
   }
 
   @Test
-  public void testValidNotFound() throws Exception {
-    try {
-      // When we validate the request
-      servletRequest.setRequestURI("/upload/test");
-      validator.validate(HttpMethod.PATCH, servletRequest, uploadStorageService, null);
-    } catch (Exception ex) {
-      fail();
-    }
+  @SneakyThrows
+  void testValidNotFound() {
+    // When we validate the request
+    servletRequest.setRequestURI("/upload/test");
+    assertThatCode(
+            () -> validator.validate(HttpMethod.PATCH, servletRequest, uploadStorageService, null))
+        .doesNotThrowAnyException();
   }
 
-  @Test(expected = PatchOnFinalUploadNotAllowedException.class)
-  public void testInvalidFinal() throws Exception {
+  @Test
+  @SneakyThrows
+  void testInvalidFinal() {
     UploadInfo info1 = new UploadInfo();
     info1.setId(new UploadId(UUID.randomUUID()));
     info1.setUploadType(UploadType.CONCATENATED);
@@ -108,6 +115,8 @@ public class PatchFinalUploadValidatorTest {
 
     // When we validate the request
     servletRequest.setRequestURI(info1.getId().toString());
-    validator.validate(HttpMethod.PATCH, servletRequest, uploadStorageService, null);
+    assertThatThrownBy(
+            () -> validator.validate(HttpMethod.PATCH, servletRequest, uploadStorageService, null))
+        .isInstanceOf(PatchOnFinalUploadNotAllowedException.class);
   }
 }

@@ -8,10 +8,13 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.UUID;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
 import me.desair.tus.server.exception.UploadNotFoundException;
@@ -20,16 +23,21 @@ import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadStorageService;
 import me.desair.tus.server.util.TusServletRequest;
 import me.desair.tus.server.util.TusServletResponse;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
-public class CreationPatchRequestHandlerTest {
+@Slf4j
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class CreationPatchRequestHandlerTest {
 
   private CreationPatchRequestHandler handler;
 
@@ -39,15 +47,16 @@ public class CreationPatchRequestHandlerTest {
 
   @Mock private UploadStorageService uploadStorageService;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     servletRequest = new MockHttpServletRequest();
     servletResponse = new MockHttpServletResponse();
     handler = new CreationPatchRequestHandler();
   }
 
   @Test
-  public void supports() throws Exception {
+  @SneakyThrows
+  void supports() {
     assertThat(handler.supports(HttpMethod.GET), is(false));
     assertThat(handler.supports(HttpMethod.POST), is(false));
     assertThat(handler.supports(HttpMethod.PUT), is(false));
@@ -59,7 +68,8 @@ public class CreationPatchRequestHandlerTest {
   }
 
   @Test
-  public void processWithLengthAndHeader() throws Exception {
+  @SneakyThrows
+  void processWithLengthAndHeader() {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
     info.setLength(10L);
@@ -79,14 +89,15 @@ public class CreationPatchRequestHandlerTest {
   }
 
   @Test
-  public void processWithLengthAndNoHeader() throws Exception {
+  @SneakyThrows
+  void processWithLengthAndNoHeader() {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
     info.setLength(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 
-    // servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, 10L);
+    // servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, 10L)
 
     handler.process(
         HttpMethod.HEAD,
@@ -99,7 +110,8 @@ public class CreationPatchRequestHandlerTest {
   }
 
   @Test
-  public void processWithoutLengthAndHeader() throws Exception {
+  @SneakyThrows
+  void processWithoutLengthAndHeader() {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
     info.setLength(null);
@@ -120,14 +132,15 @@ public class CreationPatchRequestHandlerTest {
   }
 
   @Test
-  public void processWithoutLengthAndNoHeader() throws Exception {
+  @SneakyThrows
+  void processWithoutLengthAndNoHeader() {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
     info.setLength(null);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 
-    // servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, 10L);
+    // servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, 10L)
 
     handler.process(
         HttpMethod.HEAD,
@@ -140,20 +153,25 @@ public class CreationPatchRequestHandlerTest {
   }
 
   @Test
-  public void processNotFound() throws Exception {
+  @SneakyThrows
+  void processNotFound() {
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(null);
-
+    MockHttpServletResponse response = Mockito.spy(servletResponse);
+    // When
     handler.process(
         HttpMethod.PATCH,
         new TusServletRequest(servletRequest),
-        new TusServletResponse(servletResponse),
+        new TusServletResponse(response),
         uploadStorageService,
         null);
+    // Then
+    verifyNoInteractions(response);
   }
 
   @Test
-  public void processAppendNotFound() throws Exception {
+  @SneakyThrows
+  void processAppendNotFound() {
     UploadInfo info = new UploadInfo();
     info.setId(new UploadId(UUID.randomUUID()));
     info.setOffset(10L);

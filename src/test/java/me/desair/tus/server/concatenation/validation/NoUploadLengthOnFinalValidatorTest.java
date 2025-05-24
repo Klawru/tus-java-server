@@ -1,30 +1,33 @@
 package me.desair.tus.server.concatenation.validation;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
 
+import lombok.SneakyThrows;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
 import me.desair.tus.server.exception.UploadLengthNotAllowedOnConcatenationException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 
-public class NoUploadLengthOnFinalValidatorTest {
+class NoUploadLengthOnFinalValidatorTest {
 
   private NoUploadLengthOnFinalValidator validator;
 
   private MockHttpServletRequest servletRequest;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     servletRequest = new MockHttpServletRequest();
     validator = new NoUploadLengthOnFinalValidator();
   }
 
   @Test
-  public void supports() throws Exception {
+  @SneakyThrows
+  void supports() {
     assertThat(validator.supports(HttpMethod.GET), is(false));
     assertThat(validator.supports(HttpMethod.POST), is(true));
     assertThat(validator.supports(HttpMethod.PUT), is(false));
@@ -36,56 +39,46 @@ public class NoUploadLengthOnFinalValidatorTest {
   }
 
   @Test
-  public void validateFinalUploadValid() throws Exception {
+  @SneakyThrows
+  void validateFinalUploadValid() {
     servletRequest.addHeader(HttpHeader.UPLOAD_CONCAT, "final;12345 235235 253523");
-    // servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, "10L");
+    // servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, "10L")
 
     // When we validate the request
-    try {
-      validator.validate(HttpMethod.POST, servletRequest, null, null);
-    } catch (Exception ex) {
-      fail();
-    }
-
-    // No Exception is thrown
+    assertThatCode(() -> validator.validate(HttpMethod.POST, servletRequest, null, null))
+        .doesNotThrowAnyException();
   }
 
-  @Test(expected = UploadLengthNotAllowedOnConcatenationException.class)
-  public void validateFinalUploadInvalid() throws Exception {
+  @Test
+  @SneakyThrows
+  void validateFinalUploadInvalid() {
     servletRequest.addHeader(HttpHeader.UPLOAD_CONCAT, "final;12345 235235 253523");
     servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, "10L");
 
     // When we validate the request
-    validator.validate(HttpMethod.POST, servletRequest, null, null);
+    assertThatThrownBy(() -> validator.validate(HttpMethod.POST, servletRequest, null, null))
+        .isInstanceOf(UploadLengthNotAllowedOnConcatenationException.class);
   }
 
   @Test
-  public void validateNotFinal1() throws Exception {
+  @SneakyThrows
+  void validateNotFinal1() {
     servletRequest.addHeader(HttpHeader.UPLOAD_CONCAT, "partial");
     servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, "10L");
 
     // When we validate the request
-    try {
-      validator.validate(HttpMethod.POST, servletRequest, null, null);
-    } catch (Exception ex) {
-      fail();
-    }
-
-    // No Exception is thrown
+    assertThatCode(() -> validator.validate(HttpMethod.POST, servletRequest, null, null))
+        .doesNotThrowAnyException();
   }
 
   @Test
-  public void validateNotFinal2() throws Exception {
-    // servletRequest.addHeader(HttpHeader.UPLOAD_CONCAT, "partial");
-    // servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, "10L");
+  @SneakyThrows
+  void validateNotFinal2() {
+    // servletRequest.addHeader(HttpHeader.UPLOAD_CONCAT, "partial")
+    // servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, "10L")
 
     // When we validate the request
-    try {
-      validator.validate(HttpMethod.POST, servletRequest, null, null);
-    } catch (Exception ex) {
-      fail();
-    }
-
-    // No Exception is thrown
+    assertThatCode(() -> validator.validate(HttpMethod.POST, servletRequest, null, null))
+        .doesNotThrowAnyException();
   }
 }

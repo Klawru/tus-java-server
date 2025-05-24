@@ -1,8 +1,9 @@
 package me.desair.tus.server.upload.concatenation;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -10,22 +11,27 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.UUID;
+import lombok.SneakyThrows;
 import me.desair.tus.server.upload.UploadId;
 import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadStorageService;
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
-public class UploadInputStreamEnumerationTest {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class UploadInputStreamEnumerationTest {
 
   @Mock private UploadStorageService uploadStorageService;
 
   @Test
-  public void hasMoreElements() throws Exception {
+  @SneakyThrows
+  void hasMoreElements() {
     UploadInfo info1 = new UploadInfo();
     info1.setId(new UploadId(UUID.randomUUID()));
 
@@ -61,7 +67,8 @@ public class UploadInputStreamEnumerationTest {
   }
 
   @Test
-  public void hasMoreElementsException() throws Exception {
+  @SneakyThrows
+  void hasMoreElementsException() {
     UploadInfo info1 = new UploadInfo();
     info1.setId(new UploadId(UUID.randomUUID()));
 
@@ -85,12 +92,13 @@ public class UploadInputStreamEnumerationTest {
         "Upload 1",
         IOUtils.toString(uploadInputStreamEnumeration.nextElement(), StandardCharsets.UTF_8));
     assertFalse(uploadInputStreamEnumeration.hasMoreElements());
-    assertEquals(null, uploadInputStreamEnumeration.nextElement());
+    assertNull(uploadInputStreamEnumeration.nextElement());
     assertFalse(uploadInputStreamEnumeration.hasMoreElements());
   }
 
   @Test
-  public void hasMoreElementsNotFound() throws Exception {
+  @SneakyThrows
+  void hasMoreElementsNotFound() {
     UploadInfo info1 = new UploadInfo();
     info1.setId(new UploadId(UUID.randomUUID()));
 
@@ -114,12 +122,13 @@ public class UploadInputStreamEnumerationTest {
         "Upload 1",
         IOUtils.toString(uploadInputStreamEnumeration.nextElement(), StandardCharsets.UTF_8));
     assertFalse(uploadInputStreamEnumeration.hasMoreElements());
-    assertEquals(null, uploadInputStreamEnumeration.nextElement());
+    assertNull(uploadInputStreamEnumeration.nextElement());
     assertFalse(uploadInputStreamEnumeration.hasMoreElements());
   }
 
   @Test
-  public void hasMoreElementsNullElement() throws Exception {
+  @SneakyThrows
+  void hasMoreElementsNullElement() {
     UploadInfo info1 = new UploadInfo();
     info1.setId(new UploadId(UUID.randomUUID()));
 
@@ -139,17 +148,18 @@ public class UploadInputStreamEnumerationTest {
         "Upload 1",
         IOUtils.toString(uploadInputStreamEnumeration.nextElement(), StandardCharsets.UTF_8));
     assertFalse(uploadInputStreamEnumeration.hasMoreElements());
-    assertEquals(null, uploadInputStreamEnumeration.nextElement());
+    assertNull(uploadInputStreamEnumeration.nextElement());
     assertFalse(uploadInputStreamEnumeration.hasMoreElements());
   }
 
   @Test
-  public void hasMoreElementsEmptyList() throws Exception {
+  @SneakyThrows
+  void hasMoreElementsEmptyList() {
     UploadInputStreamEnumeration uploadInputStreamEnumeration =
         new UploadInputStreamEnumeration(new LinkedList<UploadInfo>(), uploadStorageService);
 
     assertFalse(uploadInputStreamEnumeration.hasMoreElements());
-    assertEquals(null, uploadInputStreamEnumeration.nextElement());
+    assertNull(uploadInputStreamEnumeration.nextElement());
     assertFalse(uploadInputStreamEnumeration.hasMoreElements());
   }
 }
