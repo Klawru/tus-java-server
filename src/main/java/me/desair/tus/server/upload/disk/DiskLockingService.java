@@ -8,10 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import me.desair.tus.server.exception.TusException;
 import me.desair.tus.server.exception.UploadAlreadyLockedException;
-import me.desair.tus.server.upload.UploadId;
-import me.desair.tus.server.upload.UploadIdFactory;
-import me.desair.tus.server.upload.UploadLock;
-import me.desair.tus.server.upload.UploadLockingService;
+import me.desair.tus.server.upload.*;
 import org.apache.commons.lang3.Validate;
 
 /**
@@ -42,7 +39,7 @@ public class DiskLockingService extends AbstractDiskBasedService implements Uplo
   @Override
   public UploadLock lockUploadByUri(String requestUri) throws TusException, IOException {
 
-    UploadId id = idFactory.readUploadId(requestUri);
+    UploadId id = idFactory.readUploadIdFromUri(requestUri);
 
     UploadLock lock = null;
 
@@ -61,7 +58,7 @@ public class DiskLockingService extends AbstractDiskBasedService implements Uplo
 
         FileTime lastModifiedTime = Files.getLastModifiedTime(path);
         if (lastModifiedTime.toMillis() < System.currentTimeMillis() - 10000L) {
-          UploadId id = new UploadId(path.getFileName().toString());
+          UploadId id = idFactory.readUploadIdFromUri(path.getFileName().toString());
 
           if (!isLocked(id)) {
             Files.deleteIfExists(path);

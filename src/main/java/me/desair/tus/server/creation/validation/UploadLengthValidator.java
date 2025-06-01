@@ -7,7 +7,7 @@ import me.desair.tus.server.RequestValidator;
 import me.desair.tus.server.exception.MaxUploadLengthExceededException;
 import me.desair.tus.server.exception.TusException;
 import me.desair.tus.server.upload.UploadStorageService;
-import me.desair.tus.server.util.Utils;
+import me.desair.tus.server.util.HttpUtils;
 
 /**
  * If the length of the upload exceeds the maximum, which MAY be specified using the Tus-Max-Size
@@ -23,7 +23,7 @@ public class UploadLengthValidator implements RequestValidator {
       String ownerKey)
       throws TusException {
 
-    Long uploadLength = Utils.getLongHeader(request, HttpHeader.UPLOAD_LENGTH);
+    Long uploadLength = HttpUtils.getLongHeader(request, HttpHeader.UPLOAD_LENGTH);
     if (uploadLength != null
         && uploadStorageService.getMaxUploadSize() > 0
         && uploadLength > uploadStorageService.getMaxUploadSize()) {

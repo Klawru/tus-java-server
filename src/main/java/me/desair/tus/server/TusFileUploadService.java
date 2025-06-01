@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Clock;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -48,11 +49,13 @@ public class TusFileUploadService {
   private final Set<HttpMethod> supportedHttpMethods = EnumSet.noneOf(HttpMethod.class);
   private boolean isThreadLocalCacheEnabled = false;
   private boolean isChunkedTransferDecodingEnabled = false;
+  private final Clock clock;
 
   /** Constructor. */
-  public TusFileUploadService() {
+  public TusFileUploadService(Clock clock) {
+    this.clock = clock;
     String storagePath = FileUtils.getTempDirectoryPath() + File.separator + "tus";
-    this.uploadStorageService = new DiskStorageService(idFactory, storagePath);
+    this.uploadStorageService = new DiskStorageService(idFactory, storagePath, clock);
     this.uploadLockingService = new DiskLockingService(idFactory, storagePath);
     initFeatures();
   }
@@ -63,7 +66,7 @@ public class TusFileUploadService {
     addTusExtension(new CreationExtension());
     addTusExtension(new ChecksumExtension());
     addTusExtension(new TerminationExtension());
-    addTusExtension(new ExpirationExtension());
+    addTusExtension(new ExpirationExtension(clock));
     addTusExtension(new ConcatenationExtension());
   }
 
@@ -159,7 +162,7 @@ public class TusFileUploadService {
    */
   public TusFileUploadService withStoragePath(String storagePath) {
     Validate.notBlank(storagePath, "The storage path cannot be blank");
-    withUploadStorageService(new DiskStorageService(storagePath));
+    withUploadStorageService(new DiskStorageService(storagePath, clock));
     withUploadLockingService(new DiskLockingService(storagePath));
     prepareCacheIfEnabled();
     return this;

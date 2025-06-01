@@ -15,6 +15,9 @@ import me.desair.tus.server.util.AbstractTusExtension;
  * Tus-Extension header.
  */
 public class TerminationExtension extends AbstractTusExtension {
+  public TerminationExtension() {
+    postConstruct();
+  }
 
   @Override
   public String getName() {

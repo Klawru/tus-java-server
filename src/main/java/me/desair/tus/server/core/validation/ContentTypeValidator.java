@@ -7,7 +7,7 @@ import me.desair.tus.server.RequestValidator;
 import me.desair.tus.server.exception.InvalidContentTypeException;
 import me.desair.tus.server.exception.TusException;
 import me.desair.tus.server.upload.UploadStorageService;
-import me.desair.tus.server.util.Utils;
+import me.desair.tus.server.util.HttpUtils;
 
 /** All PATCH requests MUST use Content-Type: application/offset+octet-stream. */
 public class ContentTypeValidator implements RequestValidator {
@@ -22,7 +22,7 @@ public class ContentTypeValidator implements RequestValidator {
       String ownerKey)
       throws TusException {
 
-    String contentType = Utils.getHeader(request, HttpHeader.CONTENT_TYPE);
+    String contentType = HttpUtils.getHeader(request, HttpHeader.CONTENT_TYPE);
     if (!APPLICATION_OFFSET_OCTET_STREAM.equals(contentType)) {
       throw new InvalidContentTypeException(
           "The "

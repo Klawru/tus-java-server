@@ -1,6 +1,5 @@
 package me.desair.tus.server.upload;
 
-import java.io.Serializable;
 import java.util.UUID;
 
 /**
@@ -10,19 +9,19 @@ import java.util.UUID;
 public class UuidUploadIdFactory extends UploadIdFactory {
 
   @Override
-  protected Serializable getIdValueIfValid(String extractedUrlId) {
-    UUID id = null;
+  protected UploadId createUploadId(String extractedUrlId) {
+    UUID id;
     try {
       id = UUID.fromString(extractedUrlId);
     } catch (IllegalArgumentException ex) {
       id = null;
     }
-
-    return id;
+    if (id != null) return new UploadId(id.toString());
+    return null;
   }
 
   @Override
-  public synchronized UploadId createId() {
-    return new UploadId(UUID.randomUUID());
+  public UploadId createId() {
+    return new UploadId(UUID.randomUUID().toString());
   }
 }

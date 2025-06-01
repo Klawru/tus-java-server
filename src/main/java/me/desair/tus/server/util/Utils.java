@@ -5,7 +5,6 @@ import static java.nio.file.StandardOpenOption.READ;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.nio.file.StandardOpenOption.WRITE;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -17,61 +16,17 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.Path;
-import java.util.LinkedList;
-import java.util.List;
-import me.desair.tus.server.HttpHeader;
-import org.apache.commons.lang3.StringUtils;
+import lombok.experimental.UtilityClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Utility class that contains various static helper methods */
+@UtilityClass
 public class Utils {
 
   private static final Logger log = LoggerFactory.getLogger(Utils.class);
   private static final int LOCK_FILE_RETRY_COUNT = 3;
   private static final long LOCK_FILE_SLEEP_TIME = 500;
-
-  private Utils() {
-    // This is a utility class that only holds static utility methods
-  }
-
-  public static String getHeader(HttpServletRequest request, String header) {
-    return StringUtils.trimToEmpty(request.getHeader(header));
-  }
-
-  public static Long getLongHeader(HttpServletRequest request, String header) {
-    try {
-      return Long.valueOf(getHeader(request, header));
-    } catch (NumberFormatException ex) {
-      return null;
-    }
-  }
-
-  /**
-   * Build a comma-separated list based on the remote address of the request and the
-   * X-Forwareded-For header. The list is constructed as "client, proxy1, proxy2".
-   *
-   * @return A comma-separated list of ip-addresses
-   */
-  public static String buildRemoteIpList(HttpServletRequest servletRequest) {
-    String ipAddresses = servletRequest.getRemoteAddr();
-    String xforwardedForHeader = getHeader(servletRequest, HttpHeader.X_FORWARDED_FOR);
-    if (xforwardedForHeader.length() > 0) {
-      ipAddresses = xforwardedForHeader + ", " + ipAddresses;
-    }
-    return ipAddresses;
-  }
-
-  public static List<String> parseConcatenationIDsFromHeader(String uploadConcatValue) {
-    List<String> output = new LinkedList<>();
-
-    String idString = StringUtils.substringAfter(uploadConcatValue, ";");
-    for (String id : StringUtils.trimToEmpty(idString).split("\\s")) {
-      output.add(id);
-    }
-
-    return output;
-  }
 
   public static <T> T readSerializable(Path path, Class<T> clazz) throws IOException {
     T info = null;

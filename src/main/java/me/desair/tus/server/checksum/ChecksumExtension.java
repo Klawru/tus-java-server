@@ -15,6 +15,10 @@ import me.desair.tus.server.util.AbstractTusExtension;
  */
 public class ChecksumExtension extends AbstractTusExtension {
 
+  public ChecksumExtension() {
+    postConstruct();
+  }
+
   @Override
   public String getName() {
     return "checksum";

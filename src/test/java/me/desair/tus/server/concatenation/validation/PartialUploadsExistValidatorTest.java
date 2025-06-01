@@ -56,10 +56,10 @@ class PartialUploadsExistValidatorTest {
   @SneakyThrows
   void testValid() {
     UploadInfo info1 = new UploadInfo();
-    info1.setId(new UploadId(UUID.randomUUID()));
+    info1.setId(UploadId.randomUUID());
 
     UploadInfo info2 = new UploadInfo();
-    info2.setId(new UploadId(UUID.randomUUID()));
+    info2.setId(UploadId.randomUUID());
 
     when(uploadStorageService.getUploadInfo(info1.getId().toString(), null)).thenReturn(info1);
     when(uploadStorageService.getUploadInfo(info2.getId().toString(), null)).thenReturn(info2);
@@ -77,7 +77,7 @@ class PartialUploadsExistValidatorTest {
   @SneakyThrows
   void testInvalidUploadNotFound() {
     UploadInfo info1 = new UploadInfo();
-    info1.setId(new UploadId(UUID.randomUUID()));
+    info1.setId(UploadId.randomUUID());
 
     when(uploadStorageService.getUploadInfo(info1.getId())).thenReturn(info1);
 
@@ -94,7 +94,7 @@ class PartialUploadsExistValidatorTest {
   @SneakyThrows
   void testInvalidId() {
     UploadInfo info1 = new UploadInfo();
-    info1.setId(new UploadId(UUID.randomUUID()));
+    info1.setId(UploadId.randomUUID());
 
     when(uploadStorageService.getUploadInfo(info1.getId().toString(), null)).thenReturn(info1);
 

@@ -1,36 +1,41 @@
 package me.desair.tus.server.upload;
 
 import static me.desair.tus.server.util.MapMatcher.hasSize;
+import static org.assertj.core.api.Assertions.within;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.text.ParseException;
-import java.util.Stack;
-import java.util.UUID;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
 import lombok.SneakyThrows;
-import me.desair.tus.server.HttpHeader;
-import me.desair.tus.server.util.Utils;
-import org.apache.commons.lang3.time.DateFormatUtils;
+import me.desair.tus.server.util.HttpUtils;
+import me.desair.tus.server.util.TestClock;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpServletRequest;
 
 /** Test cases for the UploadInfo class. */
 class UploadInfoTest {
+
+  private final TestClock testClock = new TestClock(Instant.ofEpochMilli(1000), ZoneId.of("UTC"));
+  private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
   @Test
   @SneakyThrows
   void hasMetadata() {
     UploadInfo info = new UploadInfo();
-    info.setEncodedMetadata("Encoded Metadata");
+    info.getMetadata().put("Encoded", "Metadata");
     assertTrue(info.hasMetadata());
   }
 
@@ -38,23 +43,23 @@ class UploadInfoTest {
   @SneakyThrows
   void hasMetadataFalse() {
     UploadInfo info = new UploadInfo();
-    info.setEncodedMetadata(null);
+    info.getMetadata().clear();
     assertFalse(info.hasMetadata());
   }
 
   @Test
   @SneakyThrows
   void testGetMetadataMultipleValues() {
-    UploadInfo info = new UploadInfo();
-    info.setEncodedMetadata(
-        "filename d29ybGRfZG9taW5hdGlvbiBwbGFuLnBkZg==,"
-            + "filesize MTEya2I=, "
-            + "mimetype \tYXBwbGljYXRpb24vcGRm , "
-            + "scanned , ,, "
-            + "user\t546L5LqU \t    ");
+    Map<String, String> decodedMetadata =
+        HttpUtils.decodedMetadata(
+            "filename d29ybGRfZG9taW5hdGlvbiBwbGFuLnBkZg==,"
+                + "filesize MTEya2I=, "
+                + "mimetype \tYXBwbGljYXRpb24vcGRm , "
+                + "scanned , ,, "
+                + "user\t546L5LqU \t    ");
 
     assertThat(
-        info.getMetadata(),
+        decodedMetadata,
         allOf(
             hasSize(5),
             hasEntry("filename", "world_domination plan.pdf"),
@@ -68,7 +73,8 @@ class UploadInfoTest {
   @SneakyThrows
   void testGetMetadataSingleValues() {
     UploadInfo info = new UploadInfo();
-    info.setEncodedMetadata("filename d29ybGRfZG9taW5hdGlvbl9wbGFuLnBkZg==");
+    info.getMetadata()
+        .putAll(HttpUtils.decodedMetadata("filename d29ybGRfZG9taW5hdGlvbl9wbGFuLnBkZg=="));
 
     assertThat(
         info.getMetadata(), allOf(hasSize(1), hasEntry("filename", "world_domination_plan.pdf")));
@@ -78,7 +84,7 @@ class UploadInfoTest {
   @SneakyThrows
   void testGetMetadataNull() {
     UploadInfo info = new UploadInfo();
-    info.setEncodedMetadata(null);
+    info.getMetadata().clear();
     assertTrue(info.getMetadata().isEmpty());
   }
 
@@ -103,7 +109,7 @@ class UploadInfoTest {
   void isUploadInProgressNoLengthNoOffset() {
     UploadInfo info = new UploadInfo();
     info.setLength(null);
-    info.setOffset(null);
+    info.setOffset(0);
     assertTrue(info.isUploadInProgress());
   }
 
@@ -140,37 +146,37 @@ class UploadInfoTest {
     UploadInfo info1 = new UploadInfo();
     info1.setLength(10L);
     info1.setOffset(5L);
-    info1.setEncodedMetadata("Encoded-Metadata");
+    info1.getMetadata().put("Encoded", "Metadata");
     info1.setId(new UploadId("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
 
     UploadInfo info2 = new UploadInfo();
     info2.setLength(10L);
     info2.setOffset(5L);
-    info2.setEncodedMetadata("Encoded-Metadata");
+    info2.getMetadata().put("Encoded", "Metadata");
     info2.setId(new UploadId("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
 
     UploadInfo info3 = new UploadInfo();
     info3.setLength(9L);
     info3.setOffset(5L);
-    info3.setEncodedMetadata("Encoded-Metadata");
+    info2.getMetadata().put("Encoded", "Metadata");
     info3.setId(new UploadId("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
 
     UploadInfo info4 = new UploadInfo();
     info4.setLength(10L);
     info4.setOffset(6L);
-    info4.setEncodedMetadata("Encoded-Metadata");
+    info2.getMetadata().put("Encoded", "Metadata");
     info4.setId(new UploadId("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
 
     UploadInfo info5 = new UploadInfo();
     info5.setLength(10L);
     info5.setOffset(5L);
-    info5.setEncodedMetadata("Encoded-Metadatas");
+    info5.getMetadata().put("Encoded", "Any");
     info5.setId(new UploadId("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
 
     UploadInfo info6 = new UploadInfo();
     info6.setLength(10L);
     info6.setOffset(5L);
-    info6.setEncodedMetadata("Encoded-Metadata");
+    info6.getMetadata().put("Encoded", "Metadata");
     info6.setId(new UploadId("1911e8a4-6939-490c-c58b-a5d70f8d91fb"));
 
     assertEquals(info1, info1);
@@ -189,13 +195,13 @@ class UploadInfoTest {
     UploadInfo info1 = new UploadInfo();
     info1.setLength(10L);
     info1.setOffset(5L);
-    info1.setEncodedMetadata("Encoded-Metadata");
+    info1.getMetadata().put("Encoded", "Metadata");
     info1.setId(new UploadId("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
 
     UploadInfo info2 = new UploadInfo();
     info2.setLength(10L);
     info2.setOffset(5L);
-    info2.setEncodedMetadata("Encoded-Metadata");
+    info2.getMetadata().put("Encoded", "Metadata");
     info2.setId(new UploadId("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
 
     assertEquals(info1.hashCode(), info2.hashCode());
@@ -205,7 +211,7 @@ class UploadInfoTest {
   @SneakyThrows
   void testGetNameAndTypeWithMetadata() {
     UploadInfo info = new UploadInfo();
-    info.setEncodedMetadata("name dGVzdC5qcGc=,type aW1hZ2UvanBlZw==");
+    info.getMetadata().putAll(HttpUtils.decodedMetadata("name dGVzdC5qcGc=,type aW1hZ2UvanBlZw=="));
 
     assertThat(info.getFileName(), is("test.jpg"));
     assertThat(info.getFileMimeType(), is("image/jpeg"));
@@ -215,7 +221,7 @@ class UploadInfoTest {
   @SneakyThrows
   void testGetNameAndTypeWithoutMetadata() {
     UploadInfo info = new UploadInfo();
-    final UploadId id = new UploadId(UUID.randomUUID());
+    final UploadId id = UploadId.randomUUID();
     info.setId(id);
 
     assertThat(info.getFileName(), is(id.toString()));
@@ -226,54 +232,24 @@ class UploadInfoTest {
   @SneakyThrows
   void testExpiration() {
     UploadInfo info1 = new UploadInfo();
-    assertFalse(info1.isExpired());
+    assertFalse(info1.isExpired(testClock.instant()));
 
-    UploadInfo info2 =
-        new UploadInfo() {
-          @Override
-          protected long getCurrentTime() {
-            try {
-              return DateFormatUtils.ISO_8601_EXTENDED_DATETIME_FORMAT
-                  .parse("2018-01-20T10:43:11")
-                  .getTime();
-            } catch (ParseException e) {
-              return 0L;
-            }
-          }
-        };
-    info2.updateExpiration(172800000L);
-    assertFalse(info2.isExpired());
+    UploadInfo info2 = new UploadInfo();
+    info2.setExpirationTimestamp(testClock.instant().plus(2, ChronoUnit.DAYS));
+    assertFalse(info2.isExpired(testClock.instant()));
 
-    final Stack<Long> dateStack = new Stack<>();
-    // Current time stamp to check expiration
-    dateStack.push(
-        DateFormatUtils.ISO_8601_EXTENDED_DATETIME_FORMAT.parse("2018-01-23T10:43:11").getTime());
-    // Current time stamp to calculate expiration
-    dateStack.push(
-        DateFormatUtils.ISO_8601_EXTENDED_DATETIME_FORMAT.parse("2018-01-20T10:43:11").getTime());
-    // Creation time stamp
-    dateStack.push(
-        DateFormatUtils.ISO_8601_EXTENDED_DATETIME_FORMAT.parse("2018-01-20T10:40:39").getTime());
-
-    UploadInfo info3 =
-        new UploadInfo() {
-          @Override
-          protected long getCurrentTime() {
-            return dateStack.pop();
-          }
-        };
-    info3.updateExpiration(172800000L);
-    assertTrue(info3.isExpired());
+    UploadInfo info3 = new UploadInfo();
+    info3.setExpirationTimestamp(testClock.instant());
+    assertTrue(info3.isExpired(testClock.instant().plus(2, ChronoUnit.DAYS)));
   }
 
   @Test
   @SneakyThrows
   void testGetCreationTimestamp() {
     UploadInfo info = new UploadInfo();
-    Utils.sleep(10);
 
-    assertThat(info.getCreationTimestamp(), greaterThan(System.currentTimeMillis() - 500L));
-    assertThat(info.getCreationTimestamp(), lessThan(System.currentTimeMillis()));
+    Assertions.assertThat(info.getCreationTimestamp())
+        .isCloseTo(Instant.now(), within(1, ChronoUnit.SECONDS));
   }
 
   @Test
@@ -284,23 +260,26 @@ class UploadInfoTest {
   }
 
   @Test
-  @SneakyThrows
-  void testGetCreatorIpAddressesWithoutXforwardedFor() {
-    MockHttpServletRequest servletRequest = new MockHttpServletRequest();
-    servletRequest.setRemoteAddr("10.11.12.13");
-
-    UploadInfo info = new UploadInfo(servletRequest);
-    assertThat(info.getCreatorIpAddresses(), is("10.11.12.13"));
-  }
-
-  @Test
-  @SneakyThrows
-  void testGetCreatorIpAddressesWithXforwardedFor() {
-    MockHttpServletRequest servletRequest = new MockHttpServletRequest();
-    servletRequest.setRemoteAddr("10.11.12.13");
-    servletRequest.addHeader(HttpHeader.X_FORWARDED_FOR, "24.23.22.21, 192.168.1.1");
-
-    UploadInfo info = new UploadInfo(servletRequest);
-    assertThat(info.getCreatorIpAddresses(), is("24.23.22.21, 192.168.1.1, 10.11.12.13"));
+  void checkJsonSerialization() throws JsonProcessingException {
+    // Check that the object can be serialized and descended to JSON
+    UploadInfo uploadInfo = new UploadInfo("10.11.12.13");
+    uploadInfo.setId(new UploadId("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
+    uploadInfo.setLength(100L);
+    uploadInfo.setOffset(10L);
+    uploadInfo.getMetadata().put("Encoded", "Metadata");
+    uploadInfo.setUploadType(UploadType.REGULAR);
+    uploadInfo.setOwnerKey("ownerKey");
+    uploadInfo.setExpirationTimestamp(testClock.instant().plus(2, ChronoUnit.DAYS));
+    uploadInfo.setConcatenationPartIds(List.of("1", "2", "3"));
+    uploadInfo.setUploadConcatHeaderValue("header_value");
+    uploadInfo.getStorage().put("foo", "bar");
+    // When
+    String jsonString = objectMapper.writeValueAsString(uploadInfo);
+    UploadInfo actual = objectMapper.readValue(jsonString, UploadInfo.class);
+    // Then
+    Assertions.assertThat(actual)
+        .isEqualTo(uploadInfo)
+        .usingRecursiveComparison()
+        .isEqualTo(uploadInfo);
   }
 }

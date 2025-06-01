@@ -1,8 +1,8 @@
 package me.desair.tus.server.upload;
 
-import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
@@ -12,7 +12,12 @@ import org.apache.commons.lang3.Validate;
  */
 public abstract class UploadIdFactory {
 
-  private String uploadUri = "/";
+  /**
+   * The URI of the main tus upload endpoint. Note that this value possibly contains regex
+   * parameters.
+   */
+  @Getter private String uploadUri = "/";
+
   private Pattern uploadUriPattern = null;
 
   /**
@@ -31,16 +36,6 @@ public abstract class UploadIdFactory {
   }
 
   /**
-   * Return the URI of the main tus upload endpoint. Note that this value possibly contains regex
-   * parameters.
-   *
-   * @return The URI of the main tus upload endpoint.
-   */
-  public String getUploadUri() {
-    return uploadUri;
-  }
-
-  /**
    * Read the upload identifier from the given URL. <br>
    * Clients will send requests to upload URLs or provided URLs of completed uploads. This method is
    * able to parse those URLs and provide the user with the corresponding upload ID.
@@ -48,16 +43,25 @@ public abstract class UploadIdFactory {
    * @param url The URL provided by the client
    * @return The corresponding Upload identifier
    */
-  public UploadId readUploadId(String url) {
+  public UploadId readUploadIdFromUri(String url) {
     Matcher uploadUriMatcher = getUploadUriPattern().matcher(StringUtils.trimToEmpty(url));
     String pathId = uploadUriMatcher.replaceFirst("");
 
-    Serializable idValue = null;
-    if (StringUtils.isNotBlank(pathId)) {
-      idValue = getIdValueIfValid(pathId);
-    }
+    return readUploadIdFromString(pathId);
+  }
 
-    return idValue == null ? null : new UploadId(idValue);
+  /**
+   * Retrieves an {@link UploadId} object based on the provided path value.
+   *
+   * @param path the path value extracted from the upload URL
+   * @return the {@link UploadId} object created from the provided path value, or null if the path
+   *     ID is blank.
+   */
+  public UploadId readUploadIdFromString(String path) {
+    if (StringUtils.isNotBlank(path)) {
+      return createUploadId(path);
+    }
+    return null;
   }
 
   /**
@@ -74,7 +78,7 @@ public abstract class UploadIdFactory {
    * @param extractedUrlId The ID extracted from the URL
    * @return Value to use in the UploadId object, null if the extracted URL value was not valid
    */
-  protected abstract Serializable getIdValueIfValid(String extractedUrlId);
+  protected abstract UploadId createUploadId(String extractedUrlId);
 
   /**
    * Build and retrieve the Upload URI regex pattern.

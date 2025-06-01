@@ -10,24 +10,6 @@ import org.junit.jupiter.api.Test;
 
 /** Test class for the UploadId class. */
 class UploadIdTest {
-
-  @Test
-  @SneakyThrows
-  void getOriginalObjectUuid() {
-    UUID id = UUID.randomUUID();
-    UploadId uploadId = new UploadId(id);
-    assertEquals(id.toString(), uploadId.toString());
-    assertEquals(id, uploadId.getOriginalObject());
-  }
-
-  @Test
-  @SneakyThrows
-  void getOriginalObjectLong() {
-    UploadId uploadId = new UploadId(1337L);
-    assertEquals("1337", uploadId.toString());
-    assertEquals(1337L, uploadId.getOriginalObject());
-  }
-
   @Test
   @SneakyThrows
   void testNullConstructor() {

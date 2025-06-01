@@ -9,7 +9,7 @@ import me.desair.tus.server.exception.InvalidContentLengthException;
 import me.desair.tus.server.exception.TusException;
 import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadStorageService;
-import me.desair.tus.server.util.Utils;
+import me.desair.tus.server.util.HttpUtils;
 
 /**
  * Validate that the given upload length in combination with the bytes we already received, does not
@@ -25,7 +25,7 @@ public class ContentLengthValidator implements RequestValidator {
       String ownerKey)
       throws TusException, IOException {
 
-    Long contentLength = Utils.getLongHeader(request, HttpHeader.CONTENT_LENGTH);
+    Long contentLength = HttpUtils.getLongHeader(request, HttpHeader.CONTENT_LENGTH);
 
     UploadInfo uploadInfo = uploadStorageService.getUploadInfo(request.getRequestURI(), ownerKey);
 

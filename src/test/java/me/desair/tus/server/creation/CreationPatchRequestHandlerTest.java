@@ -12,7 +12,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.UUID;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import me.desair.tus.server.HttpHeader;
@@ -173,7 +172,7 @@ class CreationPatchRequestHandlerTest {
   @SneakyThrows
   void processAppendNotFound() {
     UploadInfo info = new UploadInfo();
-    info.setId(new UploadId(UUID.randomUUID()));
+    info.setId(UploadId.randomUUID());
     info.setOffset(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);

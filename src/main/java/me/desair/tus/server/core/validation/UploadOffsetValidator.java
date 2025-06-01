@@ -10,7 +10,7 @@ import me.desair.tus.server.exception.TusException;
 import me.desair.tus.server.exception.UploadOffsetMismatchException;
 import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadStorageService;
-import me.desair.tus.server.util.Utils;
+import me.desair.tus.server.util.HttpUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -28,7 +28,7 @@ public class UploadOffsetValidator implements RequestValidator {
       String ownerKey)
       throws IOException, TusException {
 
-    String uploadOffset = Utils.getHeader(request, HttpHeader.UPLOAD_OFFSET);
+    String uploadOffset = HttpUtils.getHeader(request, HttpHeader.UPLOAD_OFFSET);
 
     UploadInfo uploadInfo = uploadStorageService.getUploadInfo(request.getRequestURI(), ownerKey);
 

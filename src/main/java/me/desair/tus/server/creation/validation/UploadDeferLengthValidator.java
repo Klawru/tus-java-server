@@ -7,7 +7,7 @@ import me.desair.tus.server.RequestValidator;
 import me.desair.tus.server.exception.InvalidUploadLengthException;
 import me.desair.tus.server.exception.TusException;
 import me.desair.tus.server.upload.UploadStorageService;
-import me.desair.tus.server.util.Utils;
+import me.desair.tus.server.util.HttpUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -28,11 +28,11 @@ public class UploadDeferLengthValidator implements RequestValidator {
     boolean deferredLength = false;
     boolean concatenatedUpload = false;
 
-    if (StringUtils.isNumeric(Utils.getHeader(request, HttpHeader.UPLOAD_LENGTH))) {
+    if (StringUtils.isNumeric(HttpUtils.getHeader(request, HttpHeader.UPLOAD_LENGTH))) {
       uploadLength = true;
     }
 
-    if (Utils.getHeader(request, HttpHeader.UPLOAD_DEFER_LENGTH).equals("1")) {
+    if (HttpUtils.getHeader(request, HttpHeader.UPLOAD_DEFER_LENGTH).equals("1")) {
       deferredLength = true;
     }
 

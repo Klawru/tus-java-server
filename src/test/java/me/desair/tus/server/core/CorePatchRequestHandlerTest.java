@@ -12,7 +12,6 @@ import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.InputStream;
-import java.util.UUID;
 import lombok.SneakyThrows;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
@@ -68,7 +67,7 @@ class CorePatchRequestHandlerTest {
   @SneakyThrows
   void processInProgress() {
     UploadInfo info = new UploadInfo();
-    info.setId(new UploadId(UUID.randomUUID()));
+    info.setId(UploadId.randomUUID());
     info.setOffset(2L);
     info.setLength(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
@@ -98,7 +97,7 @@ class CorePatchRequestHandlerTest {
   @SneakyThrows
   void processFinished() {
     UploadInfo info = new UploadInfo();
-    info.setId(new UploadId(UUID.randomUUID()));
+    info.setId(UploadId.randomUUID());
     info.setOffset(10L);
     info.setLength(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
@@ -139,7 +138,7 @@ class CorePatchRequestHandlerTest {
   @SneakyThrows
   void processAppendNotFound() {
     UploadInfo info = new UploadInfo();
-    info.setId(new UploadId(UUID.randomUUID()));
+    info.setId(UploadId.randomUUID());
     info.setOffset(10L);
     info.setLength(8L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))

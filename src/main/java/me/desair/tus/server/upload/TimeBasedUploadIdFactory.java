@@ -1,6 +1,7 @@
 package me.desair.tus.server.upload;
 
-import java.io.Serializable;
+import java.time.Clock;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -8,25 +9,29 @@ import org.apache.commons.lang3.StringUtils;
  * ID's. Since time is not unique, this upload ID factory should not be used in busy, clustered
  * production systems.
  */
+@RequiredArgsConstructor
 public class TimeBasedUploadIdFactory extends UploadIdFactory {
+  private final Clock clock;
 
   @Override
-  protected Serializable getIdValueIfValid(String extractedUrlId) {
+  protected UploadId createUploadId(String extractedUrlId) {
     Long id = null;
-
     if (StringUtils.isNotBlank(extractedUrlId)) {
       try {
         id = Long.parseLong(extractedUrlId);
-      } catch (NumberFormatException ex) {
+      } catch (NumberFormatException ignored) {
         id = null;
       }
     }
-
-    return id;
+    if (id != null) {
+      return new UploadId(id.toString());
+    } else {
+      return null;
+    }
   }
 
   @Override
   public synchronized UploadId createId() {
-    return new UploadId(System.currentTimeMillis());
+    return new UploadId("" + clock.millis());
   }
 }

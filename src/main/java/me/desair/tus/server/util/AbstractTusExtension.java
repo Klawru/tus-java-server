@@ -14,10 +14,12 @@ import me.desair.tus.server.upload.UploadStorageService;
 /** Abstract class to implement a tus extension using validators and request handlers. */
 public abstract class AbstractTusExtension implements TusExtension {
 
-  private List<RequestValidator> requestValidators = new LinkedList<>();
-  private List<RequestHandler> requestHandlers = new LinkedList<>();
+  private final List<RequestValidator> requestValidators = new LinkedList<>();
+  private final List<RequestHandler> requestHandlers = new LinkedList<>();
 
-  protected AbstractTusExtension() {
+  protected AbstractTusExtension() {}
+
+  protected void postConstruct() {
     initValidators(requestValidators);
     initRequestHandlers(requestHandlers);
   }

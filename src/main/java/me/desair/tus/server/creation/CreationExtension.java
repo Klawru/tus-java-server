@@ -17,6 +17,9 @@ import me.desair.tus.server.util.AbstractTusExtension;
  * this extension.
  */
 public class CreationExtension extends AbstractTusExtension {
+  public CreationExtension() {
+    postConstruct();
+  }
 
   @Override
   public String getName() {

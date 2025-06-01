@@ -7,10 +7,7 @@ import me.desair.tus.server.exception.TusException;
 import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadStorageService;
 import me.desair.tus.server.upload.UploadType;
-import me.desair.tus.server.util.AbstractRequestHandler;
-import me.desair.tus.server.util.TusServletRequest;
-import me.desair.tus.server.util.TusServletResponse;
-import me.desair.tus.server.util.Utils;
+import me.desair.tus.server.util.*;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -49,7 +46,7 @@ public class ConcatenationPostRequestHandler extends AbstractRequestHandler {
         uploadInfo.setLength(null);
         uploadInfo.setUploadType(UploadType.CONCATENATED);
         uploadInfo.setConcatenationPartIds(
-            Utils.parseConcatenationIDsFromHeader(uploadConcatValue));
+            HttpUtils.parseConcatenationIdsFromUploadHeader(uploadConcatValue));
 
         uploadStorageService.getUploadConcatenationService().merge(uploadInfo);
 

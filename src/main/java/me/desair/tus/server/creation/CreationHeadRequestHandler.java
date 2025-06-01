@@ -7,6 +7,7 @@ import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadStorageService;
 import me.desair.tus.server.upload.UploadType;
 import me.desair.tus.server.util.AbstractRequestHandler;
+import me.desair.tus.server.util.HttpUtils;
 import me.desair.tus.server.util.TusServletRequest;
 import me.desair.tus.server.util.TusServletResponse;
 
@@ -37,7 +38,8 @@ public class CreationHeadRequestHandler extends AbstractRequestHandler {
         uploadStorageService.getUploadInfo(servletRequest.getRequestURI(), ownerKey);
 
     if (uploadInfo.hasMetadata()) {
-      servletResponse.setHeader(HttpHeader.UPLOAD_METADATA, uploadInfo.getEncodedMetadata());
+      servletResponse.setHeader(
+          HttpHeader.UPLOAD_METADATA, HttpUtils.encodeMetadata(uploadInfo.getMetadata()));
     }
 
     if (!uploadInfo.hasLength() && !UploadType.CONCATENATED.equals(uploadInfo.getUploadType())) {

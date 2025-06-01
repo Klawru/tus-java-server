@@ -3,6 +3,7 @@ package me.desair.tus.server.upload.concatenation;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -21,7 +22,7 @@ public class VirtualConcatenationService implements UploadConcatenationService {
 
   private static final Logger log = LoggerFactory.getLogger(VirtualConcatenationService.class);
 
-  private UploadStorageService uploadStorageService;
+  private final UploadStorageService uploadStorageService;
 
   public VirtualConcatenationService(UploadStorageService uploadStorageService) {
     this.uploadStorageService = uploadStorageService;
@@ -48,7 +49,7 @@ public class VirtualConcatenationService implements UploadConcatenationService {
         }
 
         if (expirationPeriod != null) {
-          uploadInfo.updateExpiration(expirationPeriod);
+          uploadInfo.setExpirationTimestamp(Instant.now().plusMillis(expirationPeriod));
         }
 
         updateUpload(uploadInfo);
@@ -121,7 +122,7 @@ public class VirtualConcatenationService implements UploadConcatenationService {
       } else if (expirationPeriod != null) {
         // Make sure our child uploads do not expire
         // since the partial child upload is complete, it's safe to update it.
-        childInfo.updateExpiration(expirationPeriod);
+        childInfo.setExpirationTimestamp(Instant.now().plusMillis(expirationPeriod));
         updateUpload(childInfo);
       }
     }
@@ -133,9 +134,7 @@ public class VirtualConcatenationService implements UploadConcatenationService {
     try {
       uploadStorageService.update(uploadInfo);
     } catch (UploadNotFoundException e) {
-      log.warn(
-          "Unexpected exception occurred while saving upload info with ID " + uploadInfo.getId(),
-          e);
+      log.warn("Unexpected exception occurred while saving upload info with ID {}", uploadInfo.getId(), e);
     }
   }
 }

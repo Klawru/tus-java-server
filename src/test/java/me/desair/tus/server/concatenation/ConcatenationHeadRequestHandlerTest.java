@@ -10,7 +10,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.UUID;
 import lombok.SneakyThrows;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
@@ -70,7 +69,7 @@ class ConcatenationHeadRequestHandlerTest {
   @SneakyThrows
   void testRegularUpload() {
     UploadInfo info1 = new UploadInfo();
-    info1.setId(new UploadId(UUID.randomUUID()));
+    info1.setId(UploadId.randomUUID());
     info1.setUploadConcatHeaderValue("Impossible");
     info1.setUploadType(UploadType.REGULAR);
 
@@ -92,7 +91,7 @@ class ConcatenationHeadRequestHandlerTest {
   @SneakyThrows
   void testPartialUpload() {
     UploadInfo info1 = new UploadInfo();
-    info1.setId(new UploadId(UUID.randomUUID()));
+    info1.setId(UploadId.randomUUID());
     info1.setUploadConcatHeaderValue("partial");
     info1.setUploadType(UploadType.PARTIAL);
 
@@ -114,7 +113,7 @@ class ConcatenationHeadRequestHandlerTest {
   @SneakyThrows
   void testConcatenatedUploadWithLength() {
     UploadInfo info1 = new UploadInfo();
-    info1.setId(new UploadId(UUID.randomUUID()));
+    info1.setId(UploadId.randomUUID());
     info1.setUploadConcatHeaderValue("final; 123 456");
     info1.setLength(10L);
     info1.setOffset(10L);
@@ -142,7 +141,7 @@ class ConcatenationHeadRequestHandlerTest {
   @SneakyThrows
   void testConcatenatedUploadWithoutLength() {
     UploadInfo info1 = new UploadInfo();
-    info1.setId(new UploadId(UUID.randomUUID()));
+    info1.setId(UploadId.randomUUID());
     info1.setUploadConcatHeaderValue("final; 123 456");
     info1.setLength(10L);
     info1.setOffset(8L);

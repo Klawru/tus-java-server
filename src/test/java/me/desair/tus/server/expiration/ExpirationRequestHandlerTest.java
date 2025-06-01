@@ -10,17 +10,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.text.ParseException;
-import java.util.Locale;
+import java.time.Instant;
 import java.util.TimeZone;
 import lombok.SneakyThrows;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
 import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadStorageService;
+import me.desair.tus.server.util.TestClock;
 import me.desair.tus.server.util.TusServletRequest;
 import me.desair.tus.server.util.TusServletResponse;
-import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.commons.lang3.time.TimeZones;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,10 +35,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ExpirationRequestHandlerTest {
 
-  private static final FastDateFormat DATE_FORMAT =
-      FastDateFormat.getInstance(
-          "yyyy-MM-dd HH:mm:ss", TimeZone.getTimeZone(TimeZones.GMT_ID), Locale.US);
-
   private ExpirationRequestHandler handler;
 
   private MockHttpServletRequest servletRequest;
@@ -48,11 +43,15 @@ class ExpirationRequestHandlerTest {
 
   @Mock private UploadStorageService uploadStorageService;
 
+  private final TestClock clock =
+      new TestClock(
+          Instant.parse("2018-01-20T10:43:11Z"), TimeZone.getTimeZone(TimeZones.GMT_ID).toZoneId());
+
   @BeforeEach
   void setUp() {
     servletRequest = new MockHttpServletRequest();
     servletResponse = new MockHttpServletResponse();
-    handler = new ExpirationRequestHandler();
+    handler = new ExpirationRequestHandler(clock);
   }
 
   @Test
@@ -71,7 +70,7 @@ class ExpirationRequestHandlerTest {
   @Test
   @SneakyThrows
   void testCreatedUpload() {
-    UploadInfo info = createUploadInfo();
+    UploadInfo info = new UploadInfo();
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
     when(uploadStorageService.getUploadExpirationPeriod()).thenReturn(172800000L);
@@ -92,7 +91,7 @@ class ExpirationRequestHandlerTest {
   @Test
   @SneakyThrows
   void testInProgressUpload() {
-    UploadInfo info = createUploadInfo();
+    UploadInfo info = new UploadInfo();
     info.setOffset(2L);
     info.setLength(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
@@ -133,7 +132,7 @@ class ExpirationRequestHandlerTest {
   @Test
   @SneakyThrows
   void testFinishedUpload() {
-    UploadInfo info = createUploadInfo();
+    UploadInfo info = new UploadInfo();
     info.setOffset(10L);
     info.setLength(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
@@ -156,7 +155,7 @@ class ExpirationRequestHandlerTest {
   @Test
   @SneakyThrows
   void testNullExpiration() {
-    UploadInfo info = createUploadInfo();
+    UploadInfo info = new UploadInfo();
     info.setOffset(8L);
     info.setLength(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
@@ -178,7 +177,7 @@ class ExpirationRequestHandlerTest {
   @Test
   @SneakyThrows
   void testZeroExpiration() {
-    UploadInfo info = createUploadInfo();
+    UploadInfo info = new UploadInfo();
     info.setOffset(8L);
     info.setLength(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
@@ -200,7 +199,7 @@ class ExpirationRequestHandlerTest {
   @Test
   @SneakyThrows
   void testNegativeExpiration() {
-    UploadInfo info = createUploadInfo();
+    UploadInfo info = new UploadInfo();
     info.setOffset(8L);
     info.setLength(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
@@ -217,18 +216,5 @@ class ExpirationRequestHandlerTest {
 
     verify(uploadStorageService, never()).update(any(UploadInfo.class));
     assertThat(tusResponse.getHeader(HttpHeader.UPLOAD_EXPIRES), is(nullValue()));
-  }
-
-  private UploadInfo createUploadInfo() {
-    return new UploadInfo() {
-      @Override
-      protected long getCurrentTime() {
-        try {
-          return DATE_FORMAT.parse("2018-01-20 10:43:11").getTime();
-        } catch (ParseException e) {
-          return 0L;
-        }
-      }
-    };
   }
 }

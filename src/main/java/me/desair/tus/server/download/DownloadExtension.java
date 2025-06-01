@@ -13,6 +13,9 @@ import me.desair.tus.server.util.AbstractTusExtension;
  * unofficial extension.
  */
 public class DownloadExtension extends AbstractTusExtension {
+  public DownloadExtension() {
+    postConstruct();
+  }
 
   @Override
   public String getName() {

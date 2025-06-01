@@ -7,7 +7,7 @@ import me.desair.tus.server.RequestValidator;
 import me.desair.tus.server.exception.InvalidContentLengthException;
 import me.desair.tus.server.exception.TusException;
 import me.desair.tus.server.upload.UploadStorageService;
-import me.desair.tus.server.util.Utils;
+import me.desair.tus.server.util.HttpUtils;
 
 /** An empty POST request is used to create a new upload resource. */
 public class PostEmptyRequestValidator implements RequestValidator {
@@ -20,7 +20,7 @@ public class PostEmptyRequestValidator implements RequestValidator {
       String ownerKey)
       throws TusException {
 
-    Long contentLength = Utils.getLongHeader(request, HttpHeader.CONTENT_LENGTH);
+    Long contentLength = HttpUtils.getLongHeader(request, HttpHeader.CONTENT_LENGTH);
     if (contentLength != null && contentLength > 0) {
       throw new InvalidContentLengthException(
           "A POST request should have a Content-Length header with value " + "0 and no content");

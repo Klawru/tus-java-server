@@ -12,7 +12,7 @@ import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
-import java.util.UUID;
+import java.util.Map;
 import lombok.SneakyThrows;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
@@ -20,8 +20,10 @@ import me.desair.tus.server.exception.UploadInProgressException;
 import me.desair.tus.server.upload.UploadId;
 import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadStorageService;
+import me.desair.tus.server.util.HttpUtils;
 import me.desair.tus.server.util.TusServletRequest;
 import me.desair.tus.server.util.TusServletResponse;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,13 +69,13 @@ class DownloadGetRequestHandlerTest {
   @Test
   @SneakyThrows
   void testWithCompletedUploadWithMetadata() {
-    final UploadId id = new UploadId(UUID.randomUUID());
+    final UploadId id = UploadId.randomUUID();
 
     UploadInfo info = new UploadInfo();
     info.setId(id);
     info.setOffset(10L);
     info.setLength(10L);
-    info.setEncodedMetadata("name dGVzdC5qcGc=,type aW1hZ2UvanBlZw==");
+    info.getMetadata().putAll(Map.of("name", "test.jpg", "type", "image/jpeg"));
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 
@@ -92,11 +94,11 @@ class DownloadGetRequestHandlerTest {
         servletResponse.getHeader(HttpHeader.CONTENT_DISPOSITION),
         is("attachment; filename=\"test.jpg\"; filename*=UTF-8''test.jpg"));
     assertThat(servletResponse.getHeader(HttpHeader.CONTENT_TYPE), is("image/jpeg"));
-    assertThat(
-        servletResponse.getHeader(HttpHeader.UPLOAD_METADATA),
-        is("name dGVzdC5qcGc=,type aW1hZ2UvanBlZw=="));
+    Assertions.assertThat(servletResponse.getHeader(HttpHeader.UPLOAD_METADATA))
+        .contains("name dGVzdC5qcGc=")
+        .contains("type aW1hZ2UvanBlZw==");
 
-    info.setEncodedMetadata("name TmHDr3ZlIGZpbGUudHh0,type dGV4dC9wbGFpbg==");
+    info.getMetadata().putAll(Map.of("name", "Naïve file.txt", "type", "text/plain"));
     handler.process(
         HttpMethod.GET,
         new TusServletRequest(servletRequest),
@@ -111,7 +113,7 @@ class DownloadGetRequestHandlerTest {
   @Test
   @SneakyThrows
   void testWithCompletedUploadWithoutMetadata() {
-    final UploadId id = new UploadId(UUID.randomUUID());
+    final UploadId id = UploadId.randomUUID();
 
     UploadInfo info = new UploadInfo();
     info.setId(id);
@@ -140,13 +142,13 @@ class DownloadGetRequestHandlerTest {
   @Test
   @SneakyThrows
   void testWithInProgressUpload() {
-    final UploadId id = new UploadId(UUID.randomUUID());
+    final UploadId id = UploadId.randomUUID();
 
     UploadInfo info = new UploadInfo();
     info.setId(id);
     info.setOffset(8L);
     info.setLength(10L);
-    info.setEncodedMetadata("name dGVzdC5qcGc=,type aW1hZ2UvanBlZw==");
+    info.getMetadata().putAll(HttpUtils.decodedMetadata("name dGVzdC5qcGc=,type aW1hZ2UvanBlZw=="));
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
     assertThatThrownBy(

@@ -5,9 +5,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.SneakyThrows;
-import me.desair.tus.server.upload.TimeBasedUploadIdFactory;
 import me.desair.tus.server.upload.UploadLockingService;
 import me.desair.tus.server.upload.UploadStorageService;
+import me.desair.tus.server.upload.UuidUploadIdFactory;
 import me.desair.tus.server.upload.cache.ThreadLocalCachedStorageAndLockingService;
 import me.desair.tus.server.upload.concatenation.VirtualConcatenationService;
 import me.desair.tus.server.upload.disk.DiskLockingService;
@@ -25,14 +25,14 @@ class ITTusFileUploadServiceCached extends ITTusFileUploadService {
     tusFileUploadService =
         tusFileUploadService
             .withThreadLocalCache(true)
-            .withUploadIdFactory(new TimeBasedUploadIdFactory());
+            .withUploadIdFactory(new UuidUploadIdFactory());
   }
 
   @Test
   @SneakyThrows
   void testProcessUploadDoubleCached() {
     String path = storagePath.toAbsolutePath().toString();
-    UploadStorageService uploadStorageService = new DiskStorageService(path);
+    UploadStorageService uploadStorageService = new DiskStorageService(path, clock);
     UploadLockingService uploadLockingService = new DiskLockingService(path);
 
     ThreadLocalCachedStorageAndLockingService service2 =

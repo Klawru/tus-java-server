@@ -7,10 +7,7 @@ import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
 import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadStorageService;
-import me.desair.tus.server.util.AbstractRequestHandler;
-import me.desair.tus.server.util.TusServletRequest;
-import me.desair.tus.server.util.TusServletResponse;
-import me.desair.tus.server.util.Utils;
+import me.desair.tus.server.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,16 +59,16 @@ public class CreationPostRequestHandler extends AbstractRequestHandler {
   }
 
   private UploadInfo buildUploadInfo(HttpServletRequest servletRequest) {
-    UploadInfo info = new UploadInfo(servletRequest);
+    UploadInfo info = new UploadInfo(HttpUtils.buildRemoteIpList(servletRequest));
 
-    Long length = Utils.getLongHeader(servletRequest, HttpHeader.UPLOAD_LENGTH);
+    Long length = HttpUtils.getLongHeader(servletRequest, HttpHeader.UPLOAD_LENGTH);
     if (length != null) {
       info.setLength(length);
     }
 
-    String metadata = Utils.getHeader(servletRequest, HttpHeader.UPLOAD_METADATA);
+    String metadata = HttpUtils.getHeader(servletRequest, HttpHeader.UPLOAD_METADATA);
     if (StringUtils.isNotBlank(metadata)) {
-      info.setEncodedMetadata(metadata);
+      info.getMetadata().putAll(HttpUtils.decodedMetadata(metadata));
     }
 
     return info;

@@ -21,6 +21,10 @@ import me.desair.tus.server.util.AbstractTusExtension;
  */
 public class CoreProtocol extends AbstractTusExtension {
 
+  public CoreProtocol() {
+    postConstruct();
+  }
+
   @Override
   public String getName() {
     return "core";

@@ -22,16 +22,16 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Locale;
 import java.util.UUID;
 import lombok.SneakyThrows;
 import me.desair.tus.server.exception.TusException;
 import me.desair.tus.server.upload.UploadInfo;
-import me.desair.tus.server.util.Utils;
+import me.desair.tus.server.upload.UuidUploadIdFactory;
+import me.desair.tus.server.util.TestClock;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -49,8 +49,7 @@ class ITTusFileUploadService {
   protected static final String UPLOAD_URI = "/test/upload";
   protected static final String OWNER_KEY = "JOHN_DOE";
 
-  private static final DateFormat mockDateFormat =
-      new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
+  private static final DateTimeFormatter mockDateFormat = DateTimeFormatter.RFC_1123_DATE_TIME;
 
   protected MockHttpServletRequest servletRequest;
   protected MockHttpServletResponse servletResponse;
@@ -58,10 +57,12 @@ class ITTusFileUploadService {
   protected TusFileUploadService tusFileUploadService;
 
   protected static Path storagePath;
+  protected final TestClock clock = new TestClock(Instant.ofEpochMilli(1000), ZoneId.of("UTC"));
 
   @BeforeAll
   static void setupDataFolder() throws IOException {
-    storagePath = Paths.get("target", "tus", "data").toAbsolutePath();
+    storagePath = Paths.get("target", "ITTusFileUploadService", "data").toAbsolutePath();
+    FileUtils.deleteDirectory(storagePath.toFile());
     Files.createDirectories(storagePath);
   }
 
@@ -73,13 +74,15 @@ class ITTusFileUploadService {
   @BeforeEach
   void setUp() {
     reset();
+    clock.reset();
     tusFileUploadService =
-        new TusFileUploadService()
+        new TusFileUploadService(clock)
             .withUploadUri(UPLOAD_URI)
             .withStoragePath(storagePath.toAbsolutePath().toString())
             .withMaxUploadSize(1073741824L)
             .withUploadExpirationPeriod(2L * 24 * 60 * 60 * 1000)
             .withDownloadFeature()
+            .withUploadIdFactory(new UuidUploadIdFactory())
             .withChunkedTransferDecoding(true);
   }
 
@@ -88,6 +91,7 @@ class ITTusFileUploadService {
     servletRequest.setRemoteAddr("192.168.1.1");
     servletRequest.addHeader(HttpHeader.X_FORWARDED_FOR, "10.0.2.1, 123.231.12.4");
     servletResponse = new MockHttpServletResponse();
+    clock.plusSeconds(10);
   }
 
   @Test
@@ -236,7 +240,7 @@ class ITTusFileUploadService {
         info.getMetadata(), allOf(hasSize(1), hasEntry("filename", "world_domination_plan.pdf")));
     assertThat(info.getCreatorIpAddresses(), is("10.0.2.1, 123.231.12.4, 192.168.1.1"));
 
-    // Try retrieving the uploaded bytes without owner key
+    // Try retrieving the uploaded bytes without an owner key
     assertThatCode(() -> tusFileUploadService.getUploadedBytes(location))
         .isInstanceOf(TusException.class)
         .asInstanceOf(throwable(TusException.class))
@@ -495,7 +499,7 @@ class ITTusFileUploadService {
 
   @Test
   @SneakyThrows
-  void testProcessUploadDeferredLength() throws IOException, ParseException, TusException {
+  void testProcessUploadDeferredLength() {
     String part1 = "When sending this part, we don't know the length and ";
     String part2 = "when sending this part, we know the length but the upload is not complete. ";
     String part3 = "Finally when sending the third part, the upload is complete.";
@@ -516,12 +520,8 @@ class ITTusFileUploadService {
     assertResponseHeaderNotBlank(HttpHeader.UPLOAD_EXPIRES);
     assertResponseStatus(HttpServletResponse.SC_CREATED);
 
-    Long expirationTimestampBefore =
-        Long.parseLong(
-            String.valueOf(
-                mockDateFormat
-                    .parse(servletResponse.getHeader(HttpHeader.UPLOAD_EXPIRES))
-                    .getTime()));
+    Instant expirationTimestampBefore =
+        mockDateFormat.parse(servletResponse.getHeader(HttpHeader.UPLOAD_EXPIRES), Instant::from);
 
     String location =
         UPLOAD_URI
@@ -734,12 +734,8 @@ class ITTusFileUploadService {
     assertResponseHeaderNotBlank(HttpHeader.UPLOAD_EXPIRES);
     assertResponseHeader(HttpHeader.UPLOAD_OFFSET, "41");
 
-    Long expirationTimestampBefore =
-        Long.parseLong(
-            String.valueOf(
-                mockDateFormat
-                    .parse(servletResponse.getHeader(HttpHeader.UPLOAD_EXPIRES))
-                    .getTime()));
+    Instant expirationTimestampBefore =
+        mockDateFormat.parse(servletResponse.getHeader(HttpHeader.UPLOAD_EXPIRES), Instant::from);
 
     // Make sure cleanup does not interfere with this test
     tusFileUploadService.cleanup();
@@ -861,7 +857,7 @@ class ITTusFileUploadService {
     assertThat(info.getOffset(), is(Long.valueOf(part1.getBytes().length)));
 
     // Now wait until the upload expired and run the cleanup
-    Utils.sleep(1000L);
+    clock.plusMillis(1000L);
     tusFileUploadService.cleanup();
 
     // Check with HEAD request that the upload is gone
@@ -1293,7 +1289,7 @@ class ITTusFileUploadService {
 
     // Create service without chunked decoding
     tusFileUploadService =
-        new TusFileUploadService()
+        new TusFileUploadService(clock)
             .withUploadUri("/users/[0-9]+/files/upload")
             .withStoragePath(storagePath.toAbsolutePath().toString())
             .withDownloadFeature();

@@ -10,7 +10,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.UUID;
 import lombok.SneakyThrows;
 import me.desair.tus.server.HttpMethod;
 import me.desair.tus.server.upload.UploadId;
@@ -80,7 +79,7 @@ class TerminationDeleteRequestHandlerTest {
   @Test
   @SneakyThrows
   void testWithExistingUpload() {
-    final UploadId id = new UploadId(UUID.randomUUID());
+    final UploadId id = UploadId.randomUUID();
 
     UploadInfo info = new UploadInfo();
     info.setId(id);

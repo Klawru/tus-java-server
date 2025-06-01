@@ -1,6 +1,10 @@
 package me.desair.tus.server.expiration;
 
 import java.io.IOException;
+import java.time.Clock;
+import java.time.Duration;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
 import me.desair.tus.server.exception.TusException;
@@ -19,7 +23,9 @@ import org.apache.commons.lang3.StringUtils;
  * value of the Upload-Expires header MUST be in RFC 7231
  * (https://tools.ietf.org/html/rfc7231#section-7.1.1.1) datetime format.
  */
+@RequiredArgsConstructor
 public class ExpirationRequestHandler extends AbstractRequestHandler {
+  @NonNull private final Clock clock;
 
   @Override
   public boolean supports(HttpMethod method) {
@@ -54,11 +60,11 @@ public class ExpirationRequestHandler extends AbstractRequestHandler {
     // the initial POST request. Its value MAY change over time.
 
     if (expirationPeriod != null && expirationPeriod > 0 && uploadInfo != null) {
-
-      uploadInfo.updateExpiration(expirationPeriod);
+      Duration expirationDuration = Duration.ofMillis(expirationPeriod);
+      uploadInfo.setExpirationTimestamp(clock.instant().plus(expirationDuration));
       uploadStorageService.update(uploadInfo);
-
-      servletResponse.setDateHeader(HttpHeader.UPLOAD_EXPIRES, uploadInfo.getExpirationTimestamp());
+      servletResponse.setDateHeader(
+          HttpHeader.UPLOAD_EXPIRES, uploadInfo.getExpirationTimestamp().toEpochMilli());
     }
   }
 

@@ -7,13 +7,15 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.text.ParseException;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.UUID;
 import lombok.SneakyThrows;
 import me.desair.tus.server.upload.UploadId;
 import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadLockingService;
-import org.apache.commons.lang3.time.DateFormatUtils;
+import me.desair.tus.server.upload.UuidUploadIdFactory;
+import me.desair.tus.server.util.TestClock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,21 +32,27 @@ class ExpiredUploadFilterTest {
 
   @Mock private UploadLockingService uploadLockingService;
 
+  private final UuidUploadIdFactory idFactory = new UuidUploadIdFactory();
+
   private ExpiredUploadFilter uploadFilter;
+
+  private final TestClock clock = new TestClock(Instant.ofEpochMilli(1000), ZoneId.of("UTC"));
 
   @BeforeEach
   void setUp() {
-    uploadFilter = new ExpiredUploadFilter(diskStorageService, uploadLockingService);
+    clock.reset();
+    uploadFilter =
+        new ExpiredUploadFilter(diskStorageService, uploadLockingService, idFactory, clock);
   }
 
   @Test
   @SneakyThrows
   void accept() {
-    UploadInfo info = createExpiredUploadInfo();
-    info.setId(new UploadId(UUID.randomUUID()));
+    UploadInfo info = new UploadInfo();
+    info.setId(UploadId.randomUUID());
     info.setOffset(2L);
     info.setLength(10L);
-    info.updateExpiration(100L);
+    info.setExpirationTimestamp(clock.instant().minusSeconds(100));
 
     when(diskStorageService.getUploadInfo(info.getId())).thenReturn(info);
     when(uploadLockingService.isLocked(info.getId())).thenReturn(false);
@@ -64,11 +72,11 @@ class ExpiredUploadFilterTest {
   @Test
   @SneakyThrows
   void acceptCompletedUpload() {
-    UploadInfo info = createExpiredUploadInfo();
-    info.setId(new UploadId(UUID.randomUUID()));
+    UploadInfo info = new UploadInfo();
+    info.setId(UploadId.randomUUID());
     info.setOffset(10L);
     info.setLength(10L);
-    info.updateExpiration(100L);
+    info.setExpirationTimestamp(clock.instant().minusSeconds(100));
 
     when(diskStorageService.getUploadInfo(info.getId())).thenReturn(info);
     when(uploadLockingService.isLocked(info.getId())).thenReturn(false);
@@ -81,10 +89,10 @@ class ExpiredUploadFilterTest {
   @SneakyThrows
   void acceptInProgressButNotExpired() {
     UploadInfo info = new UploadInfo();
-    info.setId(new UploadId(UUID.randomUUID()));
+    info.setId(UploadId.randomUUID());
     info.setOffset(2L);
     info.setLength(10L);
-    info.updateExpiration(172800000L);
+    info.setExpirationTimestamp(clock.instant().plusSeconds(2000));
 
     when(diskStorageService.getUploadInfo(info.getId())).thenReturn(info);
     when(uploadLockingService.isLocked(info.getId())).thenReturn(false);
@@ -95,11 +103,11 @@ class ExpiredUploadFilterTest {
   @Test
   @SneakyThrows
   void acceptLocked() {
-    UploadInfo info = createExpiredUploadInfo();
-    info.setId(new UploadId(UUID.randomUUID()));
+    UploadInfo info = new UploadInfo();
+    info.setId(UploadId.randomUUID());
     info.setOffset(8L);
     info.setLength(10L);
-    info.updateExpiration(100L);
+    info.setExpirationTimestamp(Instant.ofEpochMilli(100));
 
     when(diskStorageService.getUploadInfo(info.getId())).thenReturn(info);
     when(uploadLockingService.isLocked(info.getId())).thenReturn(true);
@@ -110,27 +118,15 @@ class ExpiredUploadFilterTest {
   @Test
   @SneakyThrows
   void acceptException() {
-    UploadInfo info = createExpiredUploadInfo();
-    info.setId(new UploadId(UUID.randomUUID()));
+    UploadInfo info = new UploadInfo();
+    info.setId(UploadId.randomUUID());
     info.setOffset(8L);
     info.setLength(10L);
-    info.updateExpiration(100L);
+    info.setExpirationTimestamp(Instant.ofEpochMilli(100));
 
     when(diskStorageService.getUploadInfo(info.getId())).thenThrow(new IOException());
     when(uploadLockingService.isLocked(info.getId())).thenReturn(false);
 
     assertFalse(uploadFilter.accept(Paths.get(info.getId().toString())));
-  }
-
-  private UploadInfo createExpiredUploadInfo() throws ParseException {
-    final long time =
-        DateFormatUtils.ISO_8601_EXTENDED_DATETIME_FORMAT.parse("2018-01-20T10:43:11").getTime();
-
-    return new UploadInfo() {
-      @Override
-      protected long getCurrentTime() {
-        return getExpirationTimestamp() == null ? time : time + 10000L;
-      }
-    };
   }
 }

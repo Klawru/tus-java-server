@@ -17,6 +17,9 @@ import me.desair.tus.server.util.AbstractTusExtension;
  * extension, it MUST add concatenation to the Tus-Extension header.
  */
 public class ConcatenationExtension extends AbstractTusExtension {
+  public ConcatenationExtension() {
+    postConstruct();
+  }
 
   @Override
   public String getName() {

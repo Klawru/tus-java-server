@@ -9,7 +9,7 @@ import me.desair.tus.server.exception.InvalidPartialUploadIdException;
 import me.desair.tus.server.exception.TusException;
 import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadStorageService;
-import me.desair.tus.server.util.Utils;
+import me.desair.tus.server.util.HttpUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /** Validate that the IDs specified in the Upload-Concat header map to an existing upload */
@@ -27,7 +27,7 @@ public class PartialUploadsExistValidator implements RequestValidator {
 
     if (StringUtils.startsWithIgnoreCase(uploadConcatValue, "final")) {
 
-      for (String uploadUri : Utils.parseConcatenationIDsFromHeader(uploadConcatValue)) {
+      for (String uploadUri : HttpUtils.parseConcatenationIdsFromUploadHeader(uploadConcatValue)) {
 
         UploadInfo uploadInfo = uploadStorageService.getUploadInfo(uploadUri, ownerKey);
         if (uploadInfo == null) {

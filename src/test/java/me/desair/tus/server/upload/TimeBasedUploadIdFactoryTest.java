@@ -2,25 +2,24 @@ package me.desair.tus.server.upload;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasToString;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThan;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 
+import java.time.Instant;
+import java.time.ZoneId;
 import lombok.SneakyThrows;
-import me.desair.tus.server.util.Utils;
+import me.desair.tus.server.util.TestClock;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class TimeBasedUploadIdFactoryTest {
 
   private UploadIdFactory idFactory;
+  private final TestClock clock = new TestClock(Instant.ofEpochMilli(1000), ZoneId.of("UTC"));
 
   @BeforeEach
   void setUp() {
-    idFactory = new TimeBasedUploadIdFactory();
+    idFactory = new TimeBasedUploadIdFactory(clock);
   }
 
   @Test
@@ -69,7 +68,8 @@ class TimeBasedUploadIdFactoryTest {
   void readUploadId() {
     idFactory.setUploadUri("/test/upload");
 
-    assertThat(idFactory.readUploadId("/test/upload/1546152320043"), hasToString("1546152320043"));
+    assertThat(
+        idFactory.readUploadIdFromUri("/test/upload/1546152320043"), hasToString("1546152320043"));
   }
 
   @Test
@@ -78,7 +78,7 @@ class TimeBasedUploadIdFactoryTest {
     idFactory.setUploadUri("/users/[0-9]+/files/upload");
 
     assertThat(
-        idFactory.readUploadId("/users/1337/files/upload/1546152320043"),
+        idFactory.readUploadIdFromUri("/users/1337/files/upload/1546152320043"),
         hasToString("1546152320043"));
   }
 
@@ -87,7 +87,8 @@ class TimeBasedUploadIdFactoryTest {
   void readUploadIdTrailingSlash() {
     idFactory.setUploadUri("/test/upload/");
 
-    assertThat(idFactory.readUploadId("/test/upload/1546152320043"), hasToString("1546152320043"));
+    assertThat(
+        idFactory.readUploadIdFromUri("/test/upload/1546152320043"), hasToString("1546152320043"));
   }
 
   @Test
@@ -96,7 +97,7 @@ class TimeBasedUploadIdFactoryTest {
     idFactory.setUploadUri("/users/[0-9]+/files/upload/");
 
     assertThat(
-        idFactory.readUploadId("/users/123456789/files/upload/1546152320043"),
+        idFactory.readUploadIdFromUri("/users/123456789/files/upload/1546152320043"),
         hasToString("1546152320043"));
   }
 
@@ -105,7 +106,7 @@ class TimeBasedUploadIdFactoryTest {
   void readUploadIdNoUuid() {
     idFactory.setUploadUri("/test/upload");
 
-    assertThat(idFactory.readUploadId("/test/upload/not-a-time-value"), is(nullValue()));
+    assertThat(idFactory.readUploadIdFromUri("/test/upload/not-a-time-value"), is(nullValue()));
   }
 
   @Test
@@ -113,7 +114,7 @@ class TimeBasedUploadIdFactoryTest {
   void readUploadIdRegexNoMatch() {
     idFactory.setUploadUri("/users/[0-9]+/files/upload");
 
-    assertThat(idFactory.readUploadId("/users/files/upload/1546152320043"), is(nullValue()));
+    assertThat(idFactory.readUploadIdFromUri("/users/files/upload/1546152320043"), is(nullValue()));
   }
 
   @Test
@@ -121,11 +122,7 @@ class TimeBasedUploadIdFactoryTest {
   void createId() {
     UploadId id = idFactory.createId();
     assertThat(id, not(nullValue()));
-    Utils.sleep(10);
-    assertThat(
-        Long.parseLong(id.getOriginalObject().toString()),
-        greaterThan(System.currentTimeMillis() - 1000L));
-    assertThat(
-        Long.parseLong(id.getOriginalObject().toString()), lessThan(System.currentTimeMillis()));
+
+    Assertions.assertThat(id).hasToString("" + clock.instant().toEpochMilli());
   }
 }

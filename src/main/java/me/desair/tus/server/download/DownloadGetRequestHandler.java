@@ -12,6 +12,7 @@ import me.desair.tus.server.exception.UploadInProgressException;
 import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadStorageService;
 import me.desair.tus.server.util.AbstractRequestHandler;
+import me.desair.tus.server.util.HttpUtils;
 import me.desair.tus.server.util.TusServletRequest;
 import me.desair.tus.server.util.TusServletResponse;
 
@@ -51,13 +52,13 @@ public class DownloadGetRequestHandler extends AbstractRequestHandler {
           String.format(
               CONTENT_DISPOSITION_FORMAT,
               info.getFileName(),
-              URLEncoder.encode(info.getFileName(), StandardCharsets.UTF_8.toString())
-                  .replace("+", "%20")));
+              URLEncoder.encode(info.getFileName(), StandardCharsets.UTF_8).replace("+", "%20")));
 
       servletResponse.setHeader(HttpHeader.CONTENT_TYPE, info.getFileMimeType());
 
       if (info.hasMetadata()) {
-        servletResponse.setHeader(HttpHeader.UPLOAD_METADATA, info.getEncodedMetadata());
+        servletResponse.setHeader(
+            HttpHeader.UPLOAD_METADATA, HttpUtils.encodeMetadata(info.getMetadata()));
       }
 
       uploadStorageService.copyUploadTo(info, servletResponse.getOutputStream());

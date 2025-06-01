@@ -14,18 +14,15 @@ import java.nio.channels.WritableByteChannel;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Clock;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import lombok.NonNull;
 import me.desair.tus.server.exception.InvalidUploadOffsetException;
 import me.desair.tus.server.exception.TusException;
 import me.desair.tus.server.exception.UploadNotFoundException;
-import me.desair.tus.server.upload.UploadId;
-import me.desair.tus.server.upload.UploadIdFactory;
-import me.desair.tus.server.upload.UploadInfo;
-import me.desair.tus.server.upload.UploadLockingService;
-import me.desair.tus.server.upload.UploadStorageService;
-import me.desair.tus.server.upload.UploadType;
+import me.desair.tus.server.upload.*;
 import me.desair.tus.server.upload.concatenation.UploadConcatenationService;
 import me.desair.tus.server.upload.concatenation.VirtualConcatenationService;
 import me.desair.tus.server.util.Utils;
@@ -47,14 +44,16 @@ public class DiskStorageService extends AbstractDiskBasedService implements Uplo
   private Long uploadExpirationPeriod = null;
   private UploadIdFactory idFactory;
   private UploadConcatenationService uploadConcatenationService;
+  private final Clock clock;
 
-  public DiskStorageService(String storagePath) {
+  public DiskStorageService(String storagePath, Clock clock) {
     super(storagePath + File.separator + UPLOAD_SUB_DIRECTORY);
+    this.clock = clock;
     setUploadConcatenationService(new VirtualConcatenationService(this));
   }
 
-  public DiskStorageService(UploadIdFactory idFactory, String storagePath) {
-    this(storagePath);
+  public DiskStorageService(UploadIdFactory idFactory, String storagePath, Clock clock) {
+    this(storagePath, clock);
     Validate.notNull(idFactory, "The IdFactory cannot be null");
     this.idFactory = idFactory;
   }
@@ -77,7 +76,7 @@ public class DiskStorageService extends AbstractDiskBasedService implements Uplo
 
   @Override
   public UploadInfo getUploadInfo(String uploadUrl, String ownerKey) throws IOException {
-    UploadInfo uploadInfo = getUploadInfo(idFactory.readUploadId(uploadUrl));
+    UploadInfo uploadInfo = getUploadInfo(idFactory.readUploadIdFromUri(uploadUrl));
     if (uploadInfo == null || !Objects.equals(uploadInfo.getOwnerKey(), ownerKey)) {
       return null;
     } else {
@@ -218,8 +217,8 @@ public class DiskStorageService extends AbstractDiskBasedService implements Uplo
   }
 
   @Override
-  public void setUploadConcatenationService(UploadConcatenationService concatenationService) {
-    Validate.notNull(concatenationService);
+  public void setUploadConcatenationService(
+      @NonNull UploadConcatenationService concatenationService) {
     this.uploadConcatenationService = concatenationService;
   }
 
@@ -232,7 +231,7 @@ public class DiskStorageService extends AbstractDiskBasedService implements Uplo
   public InputStream getUploadedBytes(String uploadUri, String ownerKey)
       throws IOException, UploadNotFoundException {
 
-    UploadId id = idFactory.readUploadId(uploadUri);
+    UploadId id = idFactory.readUploadIdFromUri(uploadUri);
 
     UploadInfo uploadInfo = getUploadInfo(id);
     if (uploadInfo == null || !Objects.equals(uploadInfo.getOwnerKey(), ownerKey)) {
@@ -294,7 +293,8 @@ public class DiskStorageService extends AbstractDiskBasedService implements Uplo
   public void cleanupExpiredUploads(UploadLockingService uploadLockingService) throws IOException {
     try (DirectoryStream<Path> expiredUploadsStream =
         Files.newDirectoryStream(
-            getStoragePath(), new ExpiredUploadFilter(this, uploadLockingService))) {
+            getStoragePath(),
+            new ExpiredUploadFilter(this, uploadLockingService, this.idFactory, this.clock))) {
 
       for (Path path : expiredUploadsStream) {
         FileUtils.deleteDirectory(path.toFile());

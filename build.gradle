@@ -33,12 +33,18 @@ dependencies {
     implementation 'commons-codec:commons-codec:1.18.0'
     implementation 'org.slf4j:slf4j-api'
     implementation 'jakarta.servlet:jakarta.servlet-api'
+    compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.19.0'
 
-    testImplementation 'org.slf4j:slf4j-simple:2.0.17'
+    testImplementation 'ch.qos.logback:logback-classic'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-json'
     testImplementation 'org.springframework:spring-web'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.hamcrest:hamcrest:3.0'
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs.add("-parameters")
 }
 
 tasks.named('test') {

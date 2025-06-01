@@ -11,7 +11,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.UUID;
 import lombok.SneakyThrows;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
@@ -73,7 +72,7 @@ class ConcatenationPostRequestHandlerTest {
     TusServletResponse response = new TusServletResponse(this.servletResponse);
 
     UploadInfo info1 = new UploadInfo();
-    info1.setId(new UploadId(UUID.randomUUID()));
+    info1.setId(UploadId.randomUUID());
 
     when(uploadStorageService.getUploadInfo(eq(info1.getId().toString()), nullable(String.class)))
         .thenReturn(info1);
@@ -99,7 +98,7 @@ class ConcatenationPostRequestHandlerTest {
     TusServletResponse response = new TusServletResponse(this.servletResponse);
 
     UploadInfo info1 = new UploadInfo();
-    info1.setId(new UploadId(UUID.randomUUID()));
+    info1.setId(UploadId.randomUUID());
 
     when(uploadStorageService.getUploadInfo(eq(info1.getId().toString()), nullable(String.class)))
         .thenReturn(info1);
@@ -126,7 +125,7 @@ class ConcatenationPostRequestHandlerTest {
     TusServletResponse response = new TusServletResponse(this.servletResponse);
 
     UploadInfo info1 = new UploadInfo();
-    info1.setId(new UploadId(UUID.randomUUID()));
+    info1.setId(UploadId.randomUUID());
 
     when(uploadStorageService.getUploadInfo(eq(info1.getId().toString()), nullable(String.class)))
         .thenReturn(info1);

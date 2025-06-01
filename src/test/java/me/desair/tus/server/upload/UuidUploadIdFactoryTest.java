@@ -64,60 +64,61 @@ class UuidUploadIdFactoryTest {
 
   @Test
   @SneakyThrows
-  void readUploadId() {
+  void readUploadIdFromUri() {
     idFactory.setUploadUri("/test/upload");
 
     assertThat(
-        idFactory.readUploadId("/test/upload/1911e8a4-6939-490c-b58b-a5d70f8d91fb"),
+        idFactory.readUploadIdFromUri("/test/upload/1911e8a4-6939-490c-b58b-a5d70f8d91fb"),
         hasToString("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
   }
 
   @Test
   @SneakyThrows
-  void readUploadIdRegex() {
+  void readUploadIdFromUriRegex() {
     idFactory.setUploadUri("/users/[0-9]+/files/upload");
 
     assertThat(
-        idFactory.readUploadId("/users/1337/files/upload/1911e8a4-6939-490c-b58b-a5d70f8d91fb"),
+        idFactory.readUploadIdFromUri(
+            "/users/1337/files/upload/1911e8a4-6939-490c-b58b-a5d70f8d91fb"),
         hasToString("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
   }
 
   @Test
   @SneakyThrows
-  void readUploadIdTrailingSlash() {
+  void readUploadIdFromUriTrailingSlash() {
     idFactory.setUploadUri("/test/upload/");
 
     assertThat(
-        idFactory.readUploadId("/test/upload/1911e8a4-6939-490c-b58b-a5d70f8d91fb"),
+        idFactory.readUploadIdFromUri("/test/upload/1911e8a4-6939-490c-b58b-a5d70f8d91fb"),
         hasToString("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
   }
 
   @Test
   @SneakyThrows
-  void readUploadIdRegexTrailingSlash() {
+  void readUploadIdFromUriRegexTrailingSlash() {
     idFactory.setUploadUri("/users/[0-9]+/files/upload/");
 
     assertThat(
-        idFactory.readUploadId(
+        idFactory.readUploadIdFromUri(
             "/users/123456789/files/upload/1911e8a4-6939-490c-b58b-a5d70f8d91fb"),
         hasToString("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
   }
 
   @Test
   @SneakyThrows
-  void readUploadIdNoUuid() {
+  void readUploadIdFromUriNoUuid() {
     idFactory.setUploadUri("/test/upload");
 
-    assertThat(idFactory.readUploadId("/test/upload/not-a-uuid-value"), is(nullValue()));
+    assertThat(idFactory.readUploadIdFromUri("/test/upload/not-a-uuid-value"), is(nullValue()));
   }
 
   @Test
   @SneakyThrows
-  void readUploadIdRegexNoMatch() {
+  void readUploadIdFromUriRegexNoMatch() {
     idFactory.setUploadUri("/users/[0-9]+/files/upload");
 
     assertThat(
-        idFactory.readUploadId("/users/files/upload/1911e8a4-6939-490c-b58b-a5d70f8d91fb"),
+        idFactory.readUploadIdFromUri("/users/files/upload/1911e8a4-6939-490c-b58b-a5d70f8d91fb"),
         is(nullValue()));
   }
 

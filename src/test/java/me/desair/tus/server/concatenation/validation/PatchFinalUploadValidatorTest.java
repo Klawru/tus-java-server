@@ -8,7 +8,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.when;
 
-import java.util.UUID;
 import lombok.SneakyThrows;
 import me.desair.tus.server.HttpMethod;
 import me.desair.tus.server.exception.PatchOnFinalUploadNotAllowedException;
@@ -58,15 +57,15 @@ class PatchFinalUploadValidatorTest {
   @SneakyThrows
   void testValid() {
     UploadInfo info1 = new UploadInfo();
-    info1.setId(new UploadId(UUID.randomUUID()));
+    info1.setId(UploadId.randomUUID());
     info1.setUploadType(UploadType.REGULAR);
 
     UploadInfo info2 = new UploadInfo();
-    info2.setId(new UploadId(UUID.randomUUID()));
+    info2.setId(UploadId.randomUUID());
     info2.setUploadType(UploadType.PARTIAL);
 
     UploadInfo info3 = new UploadInfo();
-    info3.setId(new UploadId(UUID.randomUUID()));
+    info3.setId(UploadId.randomUUID());
     info3.setUploadType(null);
 
     when(uploadStorageService.getUploadInfo(eq(info1.getId().toString()), nullable(String.class)))
@@ -107,7 +106,7 @@ class PatchFinalUploadValidatorTest {
   @SneakyThrows
   void testInvalidFinal() {
     UploadInfo info1 = new UploadInfo();
-    info1.setId(new UploadId(UUID.randomUUID()));
+    info1.setId(UploadId.randomUUID());
     info1.setUploadType(UploadType.CONCATENATED);
 
     when(uploadStorageService.getUploadInfo(eq(info1.getId().toString()), nullable(String.class)))

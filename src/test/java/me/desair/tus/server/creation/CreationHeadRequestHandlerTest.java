@@ -61,7 +61,7 @@ class CreationHeadRequestHandlerTest {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
     info.setLength(10L);
-    info.setEncodedMetadata("encoded-metadata");
+    info.getMetadata().put("Encoded", "Metadata");
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 
@@ -72,7 +72,7 @@ class CreationHeadRequestHandlerTest {
         uploadStorageService,
         null);
 
-    assertThat(servletResponse.getHeader(HttpHeader.UPLOAD_METADATA), is("encoded-metadata"));
+    assertThat(servletResponse.getHeader(HttpHeader.UPLOAD_METADATA), is("Encoded TWV0YWRhdGE="));
     assertThat(servletResponse.getHeader(HttpHeader.UPLOAD_DEFER_LENGTH), is(nullValue()));
   }
 
@@ -82,7 +82,6 @@ class CreationHeadRequestHandlerTest {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
     info.setLength(10L);
-    info.setEncodedMetadata(null);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 
@@ -103,7 +102,7 @@ class CreationHeadRequestHandlerTest {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
     info.setLength(null);
-    info.setEncodedMetadata("encoded-metadata");
+    info.getMetadata().put("Encoded", "Metadata");
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 
@@ -114,7 +113,7 @@ class CreationHeadRequestHandlerTest {
         uploadStorageService,
         null);
 
-    assertThat(servletResponse.getHeader(HttpHeader.UPLOAD_METADATA), is("encoded-metadata"));
+    assertThat(servletResponse.getHeader(HttpHeader.UPLOAD_METADATA), is("Encoded TWV0YWRhdGE="));
     assertThat(servletResponse.getHeader(HttpHeader.UPLOAD_DEFER_LENGTH), is("1"));
   }
 
@@ -124,7 +123,6 @@ class CreationHeadRequestHandlerTest {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
     info.setLength(null);
-    info.setEncodedMetadata(null);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 

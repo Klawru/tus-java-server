@@ -1,5 +1,6 @@
 package me.desair.tus.server.creation;
 
+import static me.desair.tus.server.util.HttpUtils.encodeMetadata;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -13,7 +14,7 @@ import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.UUID;
+import java.util.Map;
 import lombok.SneakyThrows;
 import me.desair.tus.server.AbstractTusExtensionIntegrationTest;
 import me.desair.tus.server.HttpHeader;
@@ -50,7 +51,7 @@ class ITCreationExtension extends AbstractTusExtensionIntegrationTest {
     tusFeature = new CreationExtension();
     uploadInfo = null;
 
-    id = new UploadId(UUID.randomUUID());
+    id = UploadId.randomUUID();
     servletRequest.setRequestURI(UPLOAD_URI);
     reset(uploadStorageService);
     when(uploadStorageService.getUploadUri()).thenReturn(UPLOAD_URI);
@@ -162,7 +163,8 @@ class ITCreationExtension extends AbstractTusExtensionIntegrationTest {
   void testPostWithMetadata() {
     // Create upload
     servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, 9);
-    servletRequest.addHeader(HttpHeader.UPLOAD_METADATA, "encoded metadata");
+    servletRequest.addHeader(
+        HttpHeader.UPLOAD_METADATA, encodeMetadata(Map.of("encoded", "metadata")));
 
     executeCall(HttpMethod.POST, false);
 
@@ -175,7 +177,7 @@ class ITCreationExtension extends AbstractTusExtensionIntegrationTest {
     servletResponse = new MockHttpServletResponse();
     executeCall(HttpMethod.HEAD, false);
 
-    assertThat(servletResponse.getHeader(HttpHeader.UPLOAD_METADATA), is("encoded metadata"));
+    assertThat(servletResponse.getHeader(HttpHeader.UPLOAD_METADATA), is("encoded bWV0YWRhdGE="));
     assertThat(servletResponse.getHeader(HttpHeader.UPLOAD_DEFER_LENGTH), is(nullValue()));
   }
 
@@ -248,7 +250,7 @@ class ITCreationExtension extends AbstractTusExtensionIntegrationTest {
     // Create upload
     servletRequest.setRequestURI("/submission/0ae5f8vv4s8c/files/upload");
     servletRequest.addHeader(HttpHeader.UPLOAD_LENGTH, 9);
-    servletRequest.addHeader(HttpHeader.UPLOAD_METADATA, "submission metadata");
+    servletRequest.addHeader(HttpHeader.UPLOAD_METADATA, "submission bWV0YWRhdGE=");
 
     executeCall(HttpMethod.POST, false);
 
@@ -262,7 +264,8 @@ class ITCreationExtension extends AbstractTusExtensionIntegrationTest {
     servletResponse = new MockHttpServletResponse();
     executeCall(HttpMethod.HEAD, false);
 
-    assertThat(servletResponse.getHeader(HttpHeader.UPLOAD_METADATA), is("submission metadata"));
+    assertThat(
+        servletResponse.getHeader(HttpHeader.UPLOAD_METADATA), is("submission bWV0YWRhdGE="));
     assertThat(servletResponse.getHeader(HttpHeader.UPLOAD_DEFER_LENGTH), is(nullValue()));
   }
 
