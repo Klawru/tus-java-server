@@ -229,7 +229,7 @@ public class DiskStorageService extends AbstractDiskBasedService implements Uplo
 
   @Override
   public InputStream getUploadedBytes(String uploadUri, String ownerKey)
-      throws IOException, UploadNotFoundException {
+          throws IOException, TusException {
 
     UploadId id = idFactory.readUploadIdFromUri(uploadUri);
 
@@ -243,7 +243,7 @@ public class DiskStorageService extends AbstractDiskBasedService implements Uplo
   }
 
   @Override
-  public InputStream getUploadedBytes(UploadId id) throws IOException, UploadNotFoundException {
+  public InputStream getUploadedBytes(UploadId id) throws IOException, TusException {
     InputStream inputStream = null;
     UploadInfo uploadInfo = getUploadInfo(id);
     if (UploadType.CONCATENATED.equals(uploadInfo.getUploadType())
@@ -263,7 +263,7 @@ public class DiskStorageService extends AbstractDiskBasedService implements Uplo
 
   @Override
   public void copyUploadTo(UploadInfo info, OutputStream outputStream)
-      throws UploadNotFoundException, IOException {
+          throws TusException, IOException {
 
     List<UploadInfo> uploads = getUploads(info);
 
@@ -302,7 +302,7 @@ public class DiskStorageService extends AbstractDiskBasedService implements Uplo
     }
   }
 
-  private List<UploadInfo> getUploads(UploadInfo info) throws IOException, UploadNotFoundException {
+  private List<UploadInfo> getUploads(UploadInfo info) throws IOException, TusException {
     List<UploadInfo> uploads;
 
     if (info != null

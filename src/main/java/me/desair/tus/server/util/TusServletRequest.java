@@ -2,36 +2,30 @@ package me.desair.tus.server.util;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.TusExtension;
 import me.desair.tus.server.checksum.ChecksumAlgorithm;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.input.CountingInputStream;
+import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.util.*;
 
 public class TusServletRequest extends HttpServletRequestWrapper {
 
-  private CountingInputStream countingInputStream;
-  private Map<ChecksumAlgorithm, DigestInputStream> digestInputStreamMap =
+  private BoundedInputStream countingInputStream;
+  private final Map<ChecksumAlgorithm, DigestInputStream> digestInputStreamMap =
       new EnumMap<>(ChecksumAlgorithm.class);
 
   private InputStream contentInputStream = null;
   private boolean isChunkedTransferDecodingEnabled = true;
 
-  private Map<String, List<String>> trailerHeaders = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-  private Set<String> processedBySet = new TreeSet<>();
+  private final Map<String, List<String>> trailerHeaders = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+  private final Set<String> processedBySet = new TreeSet<>();
 
   /**
    * Constructs a request object wrapping the given request.
@@ -67,7 +61,9 @@ public class TusServletRequest extends HttpServletRequestWrapper {
         contentInputStream = new HttpChunkedEncodingInputStream(contentInputStream, trailerHeaders);
       }
 
-      countingInputStream = new CountingInputStream(contentInputStream);
+      countingInputStream =  BoundedInputStream.builder()
+              .setInputStream(contentInputStream)
+              .get();
       contentInputStream = countingInputStream;
 
       ChecksumAlgorithm checksumAlgorithm =
@@ -97,7 +93,7 @@ public class TusServletRequest extends HttpServletRequestWrapper {
   }
 
   public long getBytesRead() {
-    return countingInputStream == null ? 0 : countingInputStream.getByteCount();
+    return countingInputStream == null ? 0 : countingInputStream.getCount();
   }
 
   public boolean hasCalculatedChecksum() {

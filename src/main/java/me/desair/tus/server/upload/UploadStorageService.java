@@ -17,7 +17,7 @@ public interface UploadStorageService {
    * @param ownerKey A key representing the owner of the upload
    * @return The upload info matching the given URL, or null when not found.
    */
-  UploadInfo getUploadInfo(String uploadUrl, String ownerKey) throws IOException;
+  UploadInfo getUploadInfo(String uploadUrl, String ownerKey) throws IOException, TusException;
 
   /**
    * Method to retrieve the upload info by its ID.
@@ -26,7 +26,7 @@ public interface UploadStorageService {
    * @return The matching upload info
    * @throws IOException When the service is not able to retrieve the upload information
    */
-  UploadInfo getUploadInfo(UploadId id) throws IOException;
+  UploadInfo getUploadInfo(UploadId id) throws IOException, TusException;
 
   /**
    * The URI which is configured as the upload endpoint.
@@ -85,7 +85,7 @@ public interface UploadStorageService {
    * @return an {@link OutputStream} containing the bytes of the upload
    */
   InputStream getUploadedBytes(String uploadUri, String ownerKey)
-      throws IOException, UploadNotFoundException;
+          throws IOException, TusException;
 
   /**
    * Get the uploaded bytes corresponding to the given upload ID as a stream.
@@ -95,7 +95,7 @@ public interface UploadStorageService {
    * @throws IOException When retrieving the bytes from the storage layer fails
    * @throws UploadNotFoundException When the proved id is not linked to an upload
    */
-  InputStream getUploadedBytes(UploadId id) throws IOException, UploadNotFoundException;
+  InputStream getUploadedBytes(UploadId id) throws IOException, TusException;
 
   /**
    * Copy the uploaded bytes to the given output stream.
@@ -104,7 +104,7 @@ public interface UploadStorageService {
    * @param outputStream The output stream where we have to copy the bytes to
    */
   void copyUploadTo(UploadInfo info, OutputStream outputStream)
-      throws UploadNotFoundException, IOException;
+          throws TusException, IOException;
 
   /**
    * Clean up any upload data that is expired according to the configured expiration time.

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Objects;
 import me.desair.tus.server.HttpHeader;
 import me.desair.tus.server.HttpMethod;
+import me.desair.tus.server.exception.TusException;
 import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadStorageService;
 import me.desair.tus.server.upload.UploadType;
@@ -34,7 +35,7 @@ public class CoreHeadRequestHandler extends AbstractRequestHandler {
       TusServletResponse servletResponse,
       UploadStorageService uploadStorageService,
       String ownerKey)
-      throws IOException {
+          throws IOException, TusException {
 
     UploadInfo uploadInfo =
         uploadStorageService.getUploadInfo(servletRequest.getRequestURI(), ownerKey);

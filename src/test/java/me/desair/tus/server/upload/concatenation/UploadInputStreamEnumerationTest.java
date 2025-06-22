@@ -15,6 +15,7 @@ import me.desair.tus.server.upload.UploadId;
 import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadStorageService;
 import org.apache.commons.io.IOUtils;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -90,8 +91,10 @@ class UploadInputStreamEnumerationTest {
     assertEquals(
         "Upload 1",
         IOUtils.toString(uploadInputStreamEnumeration.nextElement(), StandardCharsets.UTF_8));
-    assertFalse(uploadInputStreamEnumeration.hasMoreElements());
-    assertNull(uploadInputStreamEnumeration.nextElement());
+    assertTrue(uploadInputStreamEnumeration.hasMoreElements());
+    Assertions.assertThatThrownBy(() -> IOUtils.toString(uploadInputStreamEnumeration.nextElement(), StandardCharsets.UTF_8))
+        .isInstanceOf(IOException.class)
+        .hasMessage("Test");
     assertFalse(uploadInputStreamEnumeration.hasMoreElements());
   }
 

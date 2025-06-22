@@ -40,7 +40,7 @@ class ChecksumPatchRequestHandlerTest {
   @Mock private UploadStorageService uploadStorageService;
 
   @BeforeEach
-  void setUp() throws IOException {
+  void setUp() throws IOException, TusException {
     handler = new ChecksumPatchRequestHandler();
 
     UploadInfo info = new UploadInfo();

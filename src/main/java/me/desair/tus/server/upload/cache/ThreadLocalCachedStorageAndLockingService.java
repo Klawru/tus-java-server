@@ -44,7 +44,7 @@ public class ThreadLocalCachedStorageAndLockingService
   }
 
   @Override
-  public UploadInfo getUploadInfo(UploadId id) throws IOException {
+  public UploadInfo getUploadInfo(UploadId id) throws IOException, TusException {
     UploadInfo uploadInfo;
     WeakReference<UploadInfo> ref = uploadInfoCache.get();
     if (ref == null || (uploadInfo = ref.get()) == null || !id.equals(uploadInfo.getId())) {
@@ -55,7 +55,7 @@ public class ThreadLocalCachedStorageAndLockingService
   }
 
   @Override
-  public UploadInfo getUploadInfo(String uploadUrl, String ownerKey) throws IOException {
+  public UploadInfo getUploadInfo(String uploadUrl, String ownerKey) throws IOException, TusException {
     UploadInfo uploadInfo = getUploadInfo(idFactory.readUploadIdFromUri(uploadUrl));
     if (uploadInfo == null || !Objects.equals(uploadInfo.getOwnerKey(), ownerKey)) {
       uploadInfo = storageServiceDelegate.getUploadInfo(uploadUrl, ownerKey);
@@ -109,18 +109,18 @@ public class ThreadLocalCachedStorageAndLockingService
 
   @Override
   public InputStream getUploadedBytes(String uploadUri, String ownerKey)
-      throws IOException, UploadNotFoundException {
+          throws IOException, TusException {
     return storageServiceDelegate.getUploadedBytes(uploadUri, ownerKey);
   }
 
   @Override
-  public InputStream getUploadedBytes(UploadId id) throws IOException, UploadNotFoundException {
+  public InputStream getUploadedBytes(UploadId id) throws IOException, TusException {
     return storageServiceDelegate.getUploadedBytes(id);
   }
 
   @Override
   public void copyUploadTo(UploadInfo info, OutputStream outputStream)
-      throws UploadNotFoundException, IOException {
+          throws TusException, IOException {
     storageServiceDelegate.copyUploadTo(info, outputStream);
     uploadInfoCache.set(new WeakReference<>(info));
   }

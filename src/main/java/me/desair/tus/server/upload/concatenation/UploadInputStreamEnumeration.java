@@ -1,20 +1,23 @@
 package me.desair.tus.server.upload.concatenation;
 
+import me.desair.tus.server.exception.TusException;
+import me.desair.tus.server.upload.UploadInfo;
+import me.desair.tus.server.upload.UploadStorageService;
+import org.apache.commons.io.input.BrokenInputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
-import me.desair.tus.server.exception.UploadNotFoundException;
-import me.desair.tus.server.upload.UploadInfo;
-import me.desair.tus.server.upload.UploadStorageService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Enumeration class that enumerates all input streams associated with with given list of uploads
  */
+@SuppressWarnings("java:S1150")
 public class UploadInputStreamEnumeration implements Enumeration<InputStream> {
 
   private static final Logger log = LoggerFactory.getLogger(UploadInputStreamEnumeration.class);
@@ -60,9 +63,10 @@ public class UploadInputStreamEnumeration implements Enumeration<InputStream> {
     if (info != null) {
       try {
         is = uploadStorageService.getUploadedBytes(info.getId());
-      } catch (IOException | UploadNotFoundException ex) {
+      } catch (IOException | TusException ex) {
         log.error("Error while retrieving input stream for upload with ID " + info.getId(), ex);
-        is = null;
+        is = new BrokenInputStream(ex);
+        uploadIterator=null;
       }
     }
     return is;

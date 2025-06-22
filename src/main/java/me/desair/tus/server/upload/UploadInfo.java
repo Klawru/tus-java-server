@@ -5,6 +5,8 @@ import java.beans.Transient;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.*;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 /**
@@ -54,6 +56,10 @@ public class UploadInfo implements Serializable {
    * path. The available values vary depending on what data store is used.
    */
   @NonNull @Getter private final Map<String, String> storage = new HashMap<>();
+
+
+
+  @NonNull @Getter @JsonIgnore private final transient Map<String, Object> context = new HashMap<>();
 
   /**
    * Return the type of this upload. An upload can have types specified in {@link UploadType}. The

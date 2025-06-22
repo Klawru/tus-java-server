@@ -7,6 +7,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import me.desair.tus.server.exception.TusException;
 import me.desair.tus.server.exception.UploadNotFoundException;
 import me.desair.tus.server.upload.UploadInfo;
 import me.desair.tus.server.upload.UploadStorageService;
@@ -29,7 +31,7 @@ public class VirtualConcatenationService implements UploadConcatenationService {
   }
 
   @Override
-  public void merge(UploadInfo uploadInfo) throws IOException, UploadNotFoundException {
+  public void merge(UploadInfo uploadInfo) throws IOException, TusException {
     if (uploadInfo != null
         && uploadInfo.isUploadInProgress()
         && uploadInfo.getConcatenationPartIds() != null) {
@@ -59,7 +61,7 @@ public class VirtualConcatenationService implements UploadConcatenationService {
 
   @Override
   public InputStream getConcatenatedBytes(UploadInfo uploadInfo)
-      throws IOException, UploadNotFoundException {
+          throws IOException, TusException {
     merge(uploadInfo);
 
     if (uploadInfo == null || uploadInfo.isUploadInProgress()) {
@@ -73,7 +75,7 @@ public class VirtualConcatenationService implements UploadConcatenationService {
 
   @Override
   public List<UploadInfo> getPartialUploads(UploadInfo info)
-      throws IOException, UploadNotFoundException {
+          throws IOException, TusException {
     List<String> concatenationParts = info.getConcatenationPartIds();
 
     if (concatenationParts == null || concatenationParts.isEmpty()) {
