@@ -45,7 +45,7 @@ public class DownloadGetRequestHandler extends AbstractRequestHandler {
               + "and cannot be downloaded yet");
     } else {
 
-      servletResponse.setHeader(HttpHeader.CONTENT_LENGTH, Objects.toString(info.getLength()));
+      servletResponse.setHeader(HttpHeader.CONTENT_LENGTH, Objects.toString(info.getSize()));
 
       servletResponse.setHeader(
           HttpHeader.CONTENT_DISPOSITION,

@@ -97,14 +97,14 @@ class DiskStorageServiceTest {
   @SneakyThrows
   void create() {
     UploadInfo info = new UploadInfo();
-    info.setLength(10L);
+    info.setSize(10L);
     info.getMetadata().put("Encoded", "Metadata");
 
     info = storageService.create(info, null);
 
     assertThat(info.getId(), is(notNullValue()));
     assertThat(info.getOffset(), is(0L));
-    assertThat(info.getLength(), is(10L));
+    assertThat(info.getSize(), is(10L));
     assertThat(info.getMetadata(), is(Map.of("Encoded", "Metadata")));
 
     assertTrue(Files.exists(getUploadInfoPath(info.getId())));
@@ -114,7 +114,7 @@ class DiskStorageServiceTest {
   @SneakyThrows
   void getUploadInfoById() {
     UploadInfo info = new UploadInfo();
-    info.setLength(10L);
+    info.setSize(10L);
     info.getMetadata().put("Encoded", "Metadata");
 
     info = storageService.create(info, "John");
@@ -126,7 +126,7 @@ class DiskStorageServiceTest {
     assertNotSame(readInfo, info);
     assertThat(readInfo.getId(), is(info.getId()));
     assertThat(readInfo.getOffset(), is(0L));
-    assertThat(readInfo.getLength(), is(10L));
+    assertThat(readInfo.getSize(), is(10L));
     assertThat(readInfo.getMetadata(), is(Map.of("Encoded", "Metadata")));
     assertThat(readInfo.getCreationTimestamp(), is(info.getCreationTimestamp()));
     assertThat(readInfo.getUploadType(), is(info.getUploadType()));
@@ -144,7 +144,7 @@ class DiskStorageServiceTest {
   @SneakyThrows
   void getUploadInfoByUrl() {
     UploadInfo info = new UploadInfo();
-    info.setLength(10L);
+    info.setSize(10L);
     info.getMetadata().put("Encoded", "Metadata");
 
     info = storageService.create(info, null);
@@ -156,7 +156,7 @@ class DiskStorageServiceTest {
     assertNotSame(readInfo, info);
     assertThat(readInfo.getId(), is(info.getId()));
     assertThat(readInfo.getOffset(), is(0L));
-    assertThat(readInfo.getLength(), is(10L));
+    assertThat(readInfo.getSize(), is(10L));
     assertThat(readInfo.getMetadata(), is(Map.of("Encoded", "Metadata")));
   }
 
@@ -164,7 +164,7 @@ class DiskStorageServiceTest {
   @SneakyThrows
   void getUploadInfoOtherOwner() {
     UploadInfo info = new UploadInfo();
-    info.setLength(10L);
+    info.setSize(10L);
     info.getMetadata().put("Encoded", "Metadata");
 
     info = storageService.create(info, "foo");
@@ -176,7 +176,7 @@ class DiskStorageServiceTest {
     assertNotSame(readInfo, info);
     assertThat(readInfo.getId(), is(info.getId()));
     assertThat(readInfo.getOffset(), is(0L));
-    assertThat(readInfo.getLength(), is(10L));
+    assertThat(readInfo.getSize(), is(10L));
     assertThat(readInfo.getMetadata(), is(Map.of("Encoded", "Metadata")));
 
     assertThat(
@@ -187,7 +187,7 @@ class DiskStorageServiceTest {
   @SneakyThrows
   void update() {
     UploadInfo info1 = new UploadInfo();
-    info1.setLength(10L);
+    info1.setSize(10L);
     info1.getMetadata().put("Encoded", "Metadata");
 
     info1 = storageService.create(info1, null);
@@ -196,7 +196,7 @@ class DiskStorageServiceTest {
 
     UploadInfo info2 = new UploadInfo();
     info2.setId(info1.getId());
-    info2.setLength(10L);
+    info2.setSize(10L);
     info2.setOffset(8L);
     info2
         .getMetadata()
@@ -211,7 +211,7 @@ class DiskStorageServiceTest {
     assertThat(info2.getId(), is(info1.getId()));
     assertThat(readInfo.getId(), is(info1.getId()));
     assertThat(readInfo.getOffset(), is(8L));
-    assertThat(readInfo.getLength(), is(10L));
+    assertThat(readInfo.getSize(), is(10L));
     assertThat(readInfo.getMetadata(), hasEntry("Updated", "Encoded Metadata"));
   }
 
@@ -223,7 +223,7 @@ class DiskStorageServiceTest {
 
     // Create our upload with the correct length
     UploadInfo info = new UploadInfo();
-    info.setLength((long) (part1.getBytes().length + part2.getBytes().length));
+    info.setSize((long) (part1.getBytes().length + part2.getBytes().length));
     info.getMetadata().put("Encoded", "Metadata");
 
     info = storageService.create(info, null);
@@ -237,7 +237,7 @@ class DiskStorageServiceTest {
 
     assertThat(readInfo.getId(), is(info.getId()));
     assertThat(readInfo.getOffset(), is((long) part1.getBytes().length));
-    assertThat(readInfo.getLength(), is(info.getLength()));
+    assertThat(readInfo.getSize(), is(info.getSize()));
     assertThat(readInfo.getMetadata(), is(Map.of("Encoded", "Metadata")));
 
     // Write the second part of the upload
@@ -247,8 +247,8 @@ class DiskStorageServiceTest {
     readInfo = storageService.getUploadInfo(info.getId());
 
     assertThat(readInfo.getId(), is(info.getId()));
-    assertThat(readInfo.getOffset(), is(info.getLength()));
-    assertThat(readInfo.getLength(), is(info.getLength()));
+    assertThat(readInfo.getOffset(), is(info.getSize()));
+    assertThat(readInfo.getSize(), is(info.getSize()));
     assertThat(readInfo.getMetadata(), is(Map.of("Encoded", "Metadata")));
   }
 
@@ -261,7 +261,7 @@ class DiskStorageServiceTest {
 
     // Create our upload with the correct length
     UploadInfo info = new UploadInfo();
-    info.setLength(17L);
+    info.setSize(17L);
 
     info = storageService.create(info, null);
     assertTrue(Files.exists(getUploadInfoPath(info.getId())));
@@ -285,7 +285,7 @@ class DiskStorageServiceTest {
 
     // Create our upload with the correct length
     UploadInfo info = new UploadInfo();
-    info.setLength(17L);
+    info.setSize(17L);
 
     info = storageService.create(info, null);
     assertTrue(Files.exists(getUploadInfoPath(info.getId())));
@@ -309,7 +309,7 @@ class DiskStorageServiceTest {
     // Create our fake upload
     UploadInfo info = new UploadInfo();
     info.setId(UploadId.randomUUID());
-    info.setLength((long) (content.getBytes().length));
+    info.setSize((long) (content.getBytes().length));
 
     // Write the content of the upload
     assertThatThrownBy(
@@ -327,7 +327,7 @@ class DiskStorageServiceTest {
 
     // Create our upload with the correct length
     UploadInfo info = new UploadInfo();
-    info.setLength(17L);
+    info.setSize(17L);
 
     info = storageService.create(info, null);
     assertTrue(Files.exists(getUploadInfoPath(info.getId())));
@@ -351,7 +351,7 @@ class DiskStorageServiceTest {
 
     // Create our upload with the correct length
     UploadInfo info = new UploadInfo();
-    info.setLength((long) content.getBytes().length);
+    info.setSize((long) content.getBytes().length);
 
     info = storageService.create(info, null);
     assertTrue(Files.exists(getUploadInfoPath(info.getId())));
@@ -380,7 +380,7 @@ class DiskStorageServiceTest {
 
     // Create our upload with the correct length
     UploadInfo info = new UploadInfo();
-    info.setLength(50L);
+    info.setSize(50L);
 
     info = storageService.create(info, null);
     assertTrue(Files.exists(getUploadInfoPath(info.getId())));
@@ -402,7 +402,7 @@ class DiskStorageServiceTest {
 
     // Create our upload with the correct length
     UploadInfo info = new UploadInfo();
-    info.setLength((long) content.getBytes().length);
+    info.setSize((long) content.getBytes().length);
 
     info = storageService.create(info, null);
     assertTrue(Files.exists(getUploadInfoPath(info.getId())));
@@ -427,7 +427,7 @@ class DiskStorageServiceTest {
 
     // Create our upload with the correct length
     UploadInfo info = new UploadInfo();
-    info.setLength((long) content.getBytes().length);
+    info.setSize((long) content.getBytes().length);
 
     info = storageService.create(info, null);
     assertTrue(Files.exists(getUploadInfoPath(info.getId())));
@@ -449,7 +449,7 @@ class DiskStorageServiceTest {
 
     // Create our upload with the correct length
     UploadInfo info = new UploadInfo();
-    info.setLength((long) content.getBytes().length);
+    info.setSize((long) content.getBytes().length);
 
     info = storageService.create(info, null);
     assertTrue(Files.exists(getUploadInfoPath(info.getId())));
@@ -472,7 +472,7 @@ class DiskStorageServiceTest {
 
     // Create our upload with the correct length
     UploadInfo info = new UploadInfo();
-    info.setLength((long) content.getBytes().length + 20);
+    info.setSize((long) content.getBytes().length + 20);
 
     info = storageService.create(info, null);
     assertTrue(Files.exists(getUploadInfoPath(info.getId())));
@@ -500,7 +500,7 @@ class DiskStorageServiceTest {
 
     // Create our upload with the correct length
     UploadInfo info = new UploadInfo();
-    info.setLength((long) content.getBytes().length + 20);
+    info.setSize((long) content.getBytes().length + 20);
     info.setExpirationTimestamp(clock.instant().minusSeconds(100));
 
     info = storageService.create(info, null);

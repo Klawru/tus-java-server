@@ -7,10 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
+import java.nio.channels.*;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -146,10 +143,7 @@ public class DiskStorageService extends AbstractDiskBasedService implements Uplo
       try (ReadableByteChannel uploadedBytes = Channels.newChannel(inputStream);
           FileChannel file = FileChannel.open(bytesPath, WRITE)) {
 
-        try {
-          // Lock will be released when the channel closes
-          file.lock();
-
+        try (FileLock lock = file.lock()) {
           // Validate that the given offset is at the end of the file
           if (!offset.equals(file.size())) {
             throw new InvalidUploadOffsetException(
@@ -282,7 +276,7 @@ public class DiskStorageService extends AbstractDiskBasedService implements Uplo
           Path bytesPath = getBytesPath(upload.getId());
           try (FileChannel file = FileChannel.open(bytesPath, READ)) {
             // Efficiently copy the bytes to the output stream
-            file.transferTo(0, upload.getLength(), outputChannel);
+            file.transferTo(0, upload.getSize(), outputChannel);
           }
         }
       }
@@ -308,7 +302,7 @@ public class DiskStorageService extends AbstractDiskBasedService implements Uplo
     if (info != null
         && UploadType.CONCATENATED.equals(info.getUploadType())
         && uploadConcatenationService != null) {
-      uploadConcatenationService.merge(info);
+      uploadConcatenationService.concat(info);
       uploads = uploadConcatenationService.getPartialUploads(info);
     } else {
       uploads = Collections.singletonList(info);

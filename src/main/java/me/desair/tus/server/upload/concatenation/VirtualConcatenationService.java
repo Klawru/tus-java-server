@@ -31,7 +31,7 @@ public class VirtualConcatenationService implements UploadConcatenationService {
   }
 
   @Override
-  public void merge(UploadInfo uploadInfo) throws IOException, TusException {
+  public void concat(UploadInfo uploadInfo) throws IOException, TusException {
     if (uploadInfo != null
         && uploadInfo.isUploadInProgress()
         && uploadInfo.getConcatenationPartIds() != null) {
@@ -44,7 +44,7 @@ public class VirtualConcatenationService implements UploadConcatenationService {
       boolean completed = checkAllCompleted(expirationPeriod, partialUploads);
 
       if (totalLength != null && totalLength > 0) {
-        uploadInfo.setLength(totalLength);
+        uploadInfo.setSize(totalLength);
 
         if (completed) {
           uploadInfo.setOffset(totalLength);
@@ -62,7 +62,7 @@ public class VirtualConcatenationService implements UploadConcatenationService {
   @Override
   public InputStream getConcatenatedBytes(UploadInfo uploadInfo)
           throws IOException, TusException {
-    merge(uploadInfo);
+    concat(uploadInfo);
 
     if (uploadInfo == null || uploadInfo.isUploadInProgress()) {
       return null;
@@ -99,13 +99,13 @@ public class VirtualConcatenationService implements UploadConcatenationService {
     Long totalLength = 0L;
 
     for (UploadInfo childInfo : partialUploads) {
-      if (childInfo.getLength() == null) {
+      if (childInfo.getSize() == null) {
         // One of our partial uploads does not have a length, we can't calculate the total
         // length
         // yet
         totalLength = null;
       } else if (totalLength != null) {
-        totalLength += childInfo.getLength();
+        totalLength += childInfo.getSize();
       }
     }
 

@@ -42,15 +42,15 @@ class VirtualConcatenationServiceTest {
 
   @Test
   @SneakyThrows
-  void merge() {
+  void concat() {
     UploadInfo child1 = new UploadInfo();
     child1.setId(UploadId.randomUUID());
-    child1.setLength(5L);
+    child1.setSize(5L);
     child1.setOffset(5L);
 
     UploadInfo child2 = new UploadInfo();
     child2.setId(UploadId.randomUUID());
-    child2.setLength(10L);
+    child2.setSize(10L);
     child2.setOffset(10L);
 
     UploadInfo infoParent = new UploadInfo();
@@ -66,9 +66,9 @@ class VirtualConcatenationServiceTest {
             infoParent.getId().toString(), infoParent.getOwnerKey()))
         .thenReturn(infoParent);
 
-    concatenationService.merge(infoParent);
+    concatenationService.concat(infoParent);
 
-    assertThat(infoParent.getLength(), is(15L));
+    assertThat(infoParent.getSize(), is(15L));
     assertThat(infoParent.getOffset(), is(15L));
     assertThat(infoParent.isUploadInProgress(), is(false));
 
@@ -77,15 +77,15 @@ class VirtualConcatenationServiceTest {
 
   @Test
   @SneakyThrows
-  void mergeNotCompleted() {
+  void concatNotCompleted() {
     UploadInfo child1 = new UploadInfo();
     child1.setId(UploadId.randomUUID());
-    child1.setLength(5L);
+    child1.setSize(5L);
     child1.setOffset(5L);
 
     UploadInfo child2 = new UploadInfo();
     child2.setId(UploadId.randomUUID());
-    child2.setLength(10L);
+    child2.setSize(10L);
     child2.setOffset(8L);
 
     UploadInfo infoParent = new UploadInfo();
@@ -101,9 +101,9 @@ class VirtualConcatenationServiceTest {
             infoParent.getId().toString(), infoParent.getOwnerKey()))
         .thenReturn(infoParent);
 
-    concatenationService.merge(infoParent);
+    concatenationService.concat(infoParent);
 
-    assertThat(infoParent.getLength(), is(15L));
+    assertThat(infoParent.getSize(), is(15L));
     assertThat(infoParent.getOffset(), is(0L));
     assertThat(infoParent.isUploadInProgress(), is(true));
 
@@ -112,15 +112,15 @@ class VirtualConcatenationServiceTest {
 
   @Test
   @SneakyThrows
-  void mergeWithoutLength() {
+  void concatWithoutLength() {
     UploadInfo child1 = new UploadInfo();
     child1.setId(UploadId.randomUUID());
-    child1.setLength(null);
+    child1.setSize(null);
     child1.setOffset(5L);
 
     UploadInfo child2 = new UploadInfo();
     child2.setId(UploadId.randomUUID());
-    child2.setLength(null);
+    child2.setSize(null);
     child2.setOffset(8L);
 
     UploadInfo infoParent = new UploadInfo();
@@ -136,9 +136,9 @@ class VirtualConcatenationServiceTest {
             infoParent.getId().toString(), infoParent.getOwnerKey()))
         .thenReturn(infoParent);
 
-    concatenationService.merge(infoParent);
+    concatenationService.concat(infoParent);
 
-    assertThat(infoParent.getLength(), is(nullValue()));
+    assertThat(infoParent.getSize(), is(nullValue()));
     assertThat(infoParent.getOffset(), is(0L));
     assertThat(infoParent.isUploadInProgress(), is(true));
 
@@ -147,15 +147,15 @@ class VirtualConcatenationServiceTest {
 
   @Test
   @SneakyThrows
-  void mergeNotFound() {
+  void concatNotFound() {
     UploadInfo child1 = new UploadInfo();
     child1.setId(UploadId.randomUUID());
-    child1.setLength(5L);
+    child1.setSize(5L);
     child1.setOffset(5L);
 
     UploadInfo child2 = new UploadInfo();
     child2.setId(UploadId.randomUUID());
-    child2.setLength(10L);
+    child2.setSize(10L);
     child2.setOffset(10L);
 
     UploadInfo infoParent = new UploadInfo();
@@ -171,21 +171,21 @@ class VirtualConcatenationServiceTest {
             infoParent.getId().toString(), infoParent.getOwnerKey()))
         .thenReturn(infoParent);
 
-    assertThatThrownBy(() -> concatenationService.merge(infoParent))
+    assertThatThrownBy(() -> concatenationService.concat(infoParent))
         .isInstanceOf(UploadNotFoundException.class);
   }
 
   @Test
   @SneakyThrows
-  void mergeWithExpiration() {
+  void concatWithExpiration() {
     UploadInfo child1 = new UploadInfo();
     child1.setId(UploadId.randomUUID());
-    child1.setLength(5L);
+    child1.setSize(5L);
     child1.setOffset(5L);
 
     UploadInfo child2 = new UploadInfo();
     child2.setId(UploadId.randomUUID());
-    child2.setLength(10L);
+    child2.setSize(10L);
     child2.setOffset(8L);
 
     UploadInfo infoParent = new UploadInfo();
@@ -203,9 +203,9 @@ class VirtualConcatenationServiceTest {
 
     when(uploadStorageService.getUploadExpirationPeriod()).thenReturn(500L);
 
-    concatenationService.merge(infoParent);
+    concatenationService.concat(infoParent);
 
-    assertThat(infoParent.getLength(), is(15L));
+    assertThat(infoParent.getSize(), is(15L));
     assertThat(infoParent.getOffset(), is(0L));
     assertThat(infoParent.isUploadInProgress(), is(true));
 
@@ -235,7 +235,7 @@ class VirtualConcatenationServiceTest {
 
     assertThat(concatenationService.getPartialUploads(infoParent), Matchers.empty());
 
-    assertThat(infoParent.getLength(), is(nullValue()));
+    assertThat(infoParent.getSize(), is(nullValue()));
     assertThat(infoParent.getOffset(), is(0L));
     assertThat(infoParent.isUploadInProgress(), is(true));
 
@@ -250,12 +250,12 @@ class VirtualConcatenationServiceTest {
 
     UploadInfo child1 = new UploadInfo();
     child1.setId(UploadId.randomUUID());
-    child1.setLength((long) upload1.getBytes().length);
+    child1.setSize((long) upload1.getBytes().length);
     child1.setOffset(upload1.getBytes().length);
 
     UploadInfo child2 = new UploadInfo();
     child2.setId(UploadId.randomUUID());
-    child2.setLength((long) upload2.getBytes().length);
+    child2.setSize((long) upload2.getBytes().length);
     child2.setOffset(upload2.getBytes().length);
 
     UploadInfo infoParent = new UploadInfo();
@@ -290,12 +290,12 @@ class VirtualConcatenationServiceTest {
 
     UploadInfo child1 = new UploadInfo();
     child1.setId(UploadId.randomUUID());
-    child1.setLength((long) upload1.getBytes().length);
+    child1.setSize((long) upload1.getBytes().length);
     child1.setOffset((long) upload1.getBytes().length - 2);
 
     UploadInfo child2 = new UploadInfo();
     child2.setId(UploadId.randomUUID());
-    child2.setLength((long) upload2.getBytes().length);
+    child2.setSize((long) upload2.getBytes().length);
     child2.setOffset((long) upload2.getBytes().length - 2);
 
     UploadInfo infoParent = new UploadInfo();
@@ -327,12 +327,12 @@ class VirtualConcatenationServiceTest {
 
     UploadInfo child1 = new UploadInfo();
     child1.setId(UploadId.randomUUID());
-    child1.setLength((long) upload1.getBytes().length);
+    child1.setSize((long) upload1.getBytes().length);
     child1.setOffset((long) upload1.getBytes().length - 2);
 
     UploadInfo child2 = new UploadInfo();
     child2.setId(UploadId.randomUUID());
-    child2.setLength((long) upload2.getBytes().length);
+    child2.setSize((long) upload2.getBytes().length);
     child2.setOffset((long) upload2.getBytes().length - 2);
 
     UploadInfo infoParent = new UploadInfo();

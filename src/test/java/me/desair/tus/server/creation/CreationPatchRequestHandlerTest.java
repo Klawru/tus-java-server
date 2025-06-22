@@ -71,7 +71,7 @@ class CreationPatchRequestHandlerTest {
   void processWithLengthAndHeader() {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
-    info.setLength(10L);
+    info.setSize(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 
@@ -92,7 +92,7 @@ class CreationPatchRequestHandlerTest {
   void processWithLengthAndNoHeader() {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
-    info.setLength(10L);
+    info.setSize(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 
@@ -113,7 +113,7 @@ class CreationPatchRequestHandlerTest {
   void processWithoutLengthAndHeader() {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
-    info.setLength(null);
+    info.setSize(null);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 
@@ -127,7 +127,7 @@ class CreationPatchRequestHandlerTest {
         null);
 
     verify(uploadStorageService, times(1)).update(info);
-    assertThat(info.getLength(), is(10L));
+    assertThat(info.getSize(), is(10L));
   }
 
   @Test
@@ -135,7 +135,7 @@ class CreationPatchRequestHandlerTest {
   void processWithoutLengthAndNoHeader() {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
-    info.setLength(null);
+    info.setSize(null);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 

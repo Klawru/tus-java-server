@@ -234,7 +234,7 @@ class ITTusFileUploadService {
     // Get upload info from service
     UploadInfo info = tusFileUploadService.getUploadInfo(location, OWNER_KEY);
     assertFalse(info.isUploadInProgress());
-    assertThat(info.getLength(), is((long) uploadContent.getBytes().length));
+    assertThat(info.getSize(), is((long) uploadContent.getBytes().length));
     assertThat(info.getOffset(), is((long) uploadContent.getBytes().length));
     assertThat(
         info.getMetadata(), allOf(hasSize(1), hasEntry("filename", "world_domination_plan.pdf")));
@@ -426,7 +426,7 @@ class ITTusFileUploadService {
     // Check with service that upload is still in progress
     UploadInfo info = tusFileUploadService.getUploadInfo(location, OWNER_KEY);
     assertTrue(info.isUploadInProgress());
-    assertThat(info.getLength(), is(69L));
+    assertThat(info.getSize(), is(69L));
     assertThat(info.getOffset(), is(41L));
     assertThat(
         info.getMetadata(), allOf(hasSize(1), hasEntry("filename", "world_domination_plan.pdf")));
@@ -483,7 +483,7 @@ class ITTusFileUploadService {
     // Get upload info from service
     info = tusFileUploadService.getUploadInfo(location, OWNER_KEY);
     assertFalse(info.isUploadInProgress());
-    assertThat(info.getLength(), is(69L));
+    assertThat(info.getSize(), is(69L));
     assertThat(info.getOffset(), is(69L));
     assertThat(
         info.getMetadata(), allOf(hasSize(1), hasEntry("filename", "world_domination_plan.pdf")));
@@ -548,7 +548,7 @@ class ITTusFileUploadService {
     // Check with service that upload is still in progress
     UploadInfo info = tusFileUploadService.getUploadInfo(location, null);
     assertTrue(info.isUploadInProgress());
-    assertThat(info.getLength(), is(nullValue()));
+    assertThat(info.getSize(), is(nullValue()));
     assertThat(info.getOffset(), is((long) part1.getBytes().length));
     assertThat(
         info.getMetadata(), allOf(hasSize(1), hasEntry("filename", "world_domination_plan.pdf")));
@@ -611,7 +611,7 @@ class ITTusFileUploadService {
 
     info = tusFileUploadService.getUploadInfo(location, null);
     assertTrue(info.isUploadInProgress());
-    assertThat(info.getLength(), is((long) (part1 + part2 + part3).getBytes().length));
+    assertThat(info.getSize(), is((long) (part1 + part2 + part3).getBytes().length));
 
     // check that expiration timestamp was updated
     assertThat(info.getExpirationTimestamp(), greaterThan(expirationTimestampBefore));
@@ -639,7 +639,7 @@ class ITTusFileUploadService {
     // Get upload info from service
     info = tusFileUploadService.getUploadInfo(location, null);
     assertFalse(info.isUploadInProgress());
-    assertThat(info.getLength(), is((long) (part1 + part2 + part3).getBytes().length));
+    assertThat(info.getSize(), is((long) (part1 + part2 + part3).getBytes().length));
     assertThat(info.getOffset(), is((long) (part1 + part2 + part3).getBytes().length));
     assertThat(
         info.getMetadata(), allOf(hasSize(1), hasEntry("filename", "world_domination_plan.pdf")));
@@ -761,7 +761,7 @@ class ITTusFileUploadService {
     // Check that upload info is still from the first patch
     UploadInfo info = tusFileUploadService.getUploadInfo(location, OWNER_KEY);
     assertTrue(info.isUploadInProgress());
-    assertThat(info.getLength(), is(69L));
+    assertThat(info.getSize(), is(69L));
     assertThat(info.getOffset(), is(41L));
     assertThat(
         info.getMetadata(), allOf(hasSize(1), hasEntry("filename", "world_domination_plan.pdf")));
@@ -853,7 +853,7 @@ class ITTusFileUploadService {
     // Check with service that upload is still in progress
     UploadInfo info = tusFileUploadService.getUploadInfo(location, OWNER_KEY);
     assertTrue(info.isUploadInProgress());
-    assertThat(info.getLength(), is(part1.getBytes().length + 20L));
+    assertThat(info.getSize(), is(part1.getBytes().length + 20L));
     assertThat(info.getOffset(), is(Long.valueOf(part1.getBytes().length)));
 
     // Now wait until the upload expired and run the cleanup
@@ -1021,7 +1021,7 @@ class ITTusFileUploadService {
     // Get upload info from service
     UploadInfo info = tusFileUploadService.getUploadInfo(location, OWNER_KEY);
     assertFalse(info.isUploadInProgress());
-    assertThat(info.getLength(), is(69L));
+    assertThat(info.getSize(), is(69L));
     assertThat(info.getOffset(), is(69L));
     assertThat(info.isUploadInProgress(), is(false));
     assertThat(
@@ -1349,7 +1349,7 @@ class ITTusFileUploadService {
     // Get upload info from service
     UploadInfo info = tusFileUploadService.getUploadInfo(location, OWNER_KEY);
     assertFalse(info.isUploadInProgress());
-    assertThat(info.getLength(), is(67L));
+    assertThat(info.getSize(), is(67L));
     assertThat(info.getOffset(), is(67L));
     assertThat(
         info.getMetadata(), allOf(hasSize(1), hasEntry("filename", "world_domination_plan.pdf")));

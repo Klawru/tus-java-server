@@ -45,7 +45,7 @@ class ChecksumPatchRequestHandlerTest {
 
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
-    info.setLength(10L);
+    info.setSize(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
   }

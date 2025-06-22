@@ -44,7 +44,7 @@ public class CoreHeadRequestHandler extends AbstractRequestHandler {
 
       if (uploadInfo.hasLength()) {
         servletResponse.setHeader(
-            HttpHeader.UPLOAD_LENGTH, Objects.toString(uploadInfo.getLength()));
+            HttpHeader.UPLOAD_LENGTH, Objects.toString(uploadInfo.getSize()));
       }
       servletResponse.setHeader(HttpHeader.UPLOAD_OFFSET, Objects.toString(uploadInfo.getOffset()));
     }

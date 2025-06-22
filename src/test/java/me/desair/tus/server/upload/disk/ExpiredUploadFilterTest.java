@@ -51,7 +51,7 @@ class ExpiredUploadFilterTest {
     UploadInfo info = new UploadInfo();
     info.setId(UploadId.randomUUID());
     info.setOffset(2L);
-    info.setLength(10L);
+    info.setSize(10L);
     info.setExpirationTimestamp(clock.instant().minusSeconds(100));
 
     when(diskStorageService.getUploadInfo(info.getId())).thenReturn(info);
@@ -75,7 +75,7 @@ class ExpiredUploadFilterTest {
     UploadInfo info = new UploadInfo();
     info.setId(UploadId.randomUUID());
     info.setOffset(10L);
-    info.setLength(10L);
+    info.setSize(10L);
     info.setExpirationTimestamp(clock.instant().minusSeconds(100));
 
     when(diskStorageService.getUploadInfo(info.getId())).thenReturn(info);
@@ -91,7 +91,7 @@ class ExpiredUploadFilterTest {
     UploadInfo info = new UploadInfo();
     info.setId(UploadId.randomUUID());
     info.setOffset(2L);
-    info.setLength(10L);
+    info.setSize(10L);
     info.setExpirationTimestamp(clock.instant().plusSeconds(2000));
 
     when(diskStorageService.getUploadInfo(info.getId())).thenReturn(info);
@@ -106,7 +106,7 @@ class ExpiredUploadFilterTest {
     UploadInfo info = new UploadInfo();
     info.setId(UploadId.randomUUID());
     info.setOffset(8L);
-    info.setLength(10L);
+    info.setSize(10L);
     info.setExpirationTimestamp(Instant.ofEpochMilli(100));
 
     when(diskStorageService.getUploadInfo(info.getId())).thenReturn(info);
@@ -121,7 +121,7 @@ class ExpiredUploadFilterTest {
     UploadInfo info = new UploadInfo();
     info.setId(UploadId.randomUUID());
     info.setOffset(8L);
-    info.setLength(10L);
+    info.setSize(10L);
     info.setExpirationTimestamp(Instant.ofEpochMilli(100));
 
     when(diskStorageService.getUploadInfo(info.getId())).thenThrow(new IOException());

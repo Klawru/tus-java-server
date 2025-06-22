@@ -32,7 +32,7 @@ public class ContentLengthValidator implements RequestValidator {
     if (contentLength != null
         && uploadInfo != null
         && uploadInfo.hasLength()
-        && (uploadInfo.getOffset() + contentLength > uploadInfo.getLength())) {
+        && (uploadInfo.getOffset() + contentLength > uploadInfo.getSize())) {
 
       throw new InvalidContentLengthException(
           "The "
@@ -42,7 +42,7 @@ public class ContentLengthValidator implements RequestValidator {
               + " in combination with the current offset "
               + uploadInfo.getOffset()
               + " exceeds the declared upload length "
-              + uploadInfo.getLength());
+              + uploadInfo.getSize());
     }
   }
 

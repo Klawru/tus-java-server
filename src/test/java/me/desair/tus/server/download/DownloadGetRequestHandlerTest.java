@@ -74,7 +74,7 @@ class DownloadGetRequestHandlerTest {
     UploadInfo info = new UploadInfo();
     info.setId(id);
     info.setOffset(10L);
-    info.setLength(10L);
+    info.setSize(10L);
     info.getMetadata().putAll(Map.of("name", "test.jpg", "type", "image/jpeg"));
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
@@ -118,7 +118,7 @@ class DownloadGetRequestHandlerTest {
     UploadInfo info = new UploadInfo();
     info.setId(id);
     info.setOffset(10L);
-    info.setLength(10L);
+    info.setSize(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 
@@ -147,7 +147,7 @@ class DownloadGetRequestHandlerTest {
     UploadInfo info = new UploadInfo();
     info.setId(id);
     info.setOffset(8L);
-    info.setLength(10L);
+    info.setSize(10L);
     info.getMetadata().putAll(HttpUtils.decodedMetadata("name dGVzdC5qcGc=,type aW1hZ2UvanBlZw=="));
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);

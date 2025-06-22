@@ -63,7 +63,7 @@ public class CreationPostRequestHandler extends AbstractRequestHandler {
 
     Long length = HttpUtils.getLongHeader(servletRequest, HttpHeader.UPLOAD_LENGTH);
     if (length != null) {
-      info.setLength(length);
+      info.setSize(length);
     }
 
     String metadata = HttpUtils.getHeader(servletRequest, HttpHeader.UPLOAD_METADATA);

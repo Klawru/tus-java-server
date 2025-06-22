@@ -89,7 +89,7 @@ class ConcatenationPostRequestHandlerTest {
     assertThat(info1.getUploadConcatHeaderValue(), is(nullValue()));
 
     verify(uploadStorageService, times(1)).update(info1);
-    verify(concatenationService, never()).merge(info1);
+    verify(concatenationService, never()).concat(info1);
   }
 
   @Test
@@ -116,7 +116,7 @@ class ConcatenationPostRequestHandlerTest {
     assertThat(info1.getUploadConcatHeaderValue(), is("partial"));
 
     verify(uploadStorageService, times(1)).update(info1);
-    verify(concatenationService, never()).merge(info1);
+    verify(concatenationService, never()).concat(info1);
   }
 
   @Test
@@ -143,7 +143,7 @@ class ConcatenationPostRequestHandlerTest {
     assertThat(info1.getUploadConcatHeaderValue(), is("final; 123 456"));
 
     verify(uploadStorageService, times(1)).update(info1);
-    verify(concatenationService, times(1)).merge(info1);
+    verify(concatenationService, times(1)).concat(info1);
   }
 
   @Test
@@ -162,6 +162,6 @@ class ConcatenationPostRequestHandlerTest {
         null);
 
     verify(uploadStorageService, never()).update(any(UploadInfo.class));
-    verify(concatenationService, never()).merge(any(UploadInfo.class));
+    verify(concatenationService, never()).concat(any(UploadInfo.class));
   }
 }

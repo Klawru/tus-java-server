@@ -43,7 +43,7 @@ class UploadOffsetValidatorTest {
   void validateValidOffsetInitialUpload() {
     UploadInfo info = new UploadInfo();
     info.setOffset(0L);
-    info.setLength(10L);
+    info.setSize(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 
@@ -60,7 +60,7 @@ class UploadOffsetValidatorTest {
   void validateValidOffsetInProgressUpload() {
     UploadInfo info = new UploadInfo();
     info.setOffset(5L);
-    info.setLength(10L);
+    info.setSize(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 
@@ -77,7 +77,7 @@ class UploadOffsetValidatorTest {
   void validateInvalidOffsetInitialUpload() {
     UploadInfo info = new UploadInfo();
     info.setOffset(0L);
-    info.setLength(10L);
+    info.setSize(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 
@@ -94,7 +94,7 @@ class UploadOffsetValidatorTest {
   void validateInvalidOffsetInProgressUpload() {
     UploadInfo info = new UploadInfo();
     info.setOffset(5L);
-    info.setLength(10L);
+    info.setSize(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 
@@ -111,7 +111,7 @@ class UploadOffsetValidatorTest {
   void validateMissingUploadOffset() {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
-    info.setLength(10L);
+    info.setSize(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 

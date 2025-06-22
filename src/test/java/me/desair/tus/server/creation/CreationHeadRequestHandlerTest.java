@@ -60,7 +60,7 @@ class CreationHeadRequestHandlerTest {
   void processWithLengthAndMetadata() {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
-    info.setLength(10L);
+    info.setSize(10L);
     info.getMetadata().put("Encoded", "Metadata");
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
@@ -81,7 +81,7 @@ class CreationHeadRequestHandlerTest {
   void processWithLengthAndNoMetadata() {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
-    info.setLength(10L);
+    info.setSize(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 
@@ -101,7 +101,7 @@ class CreationHeadRequestHandlerTest {
   void processWithNoLengthAndMetadata() {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
-    info.setLength(null);
+    info.setSize(null);
     info.getMetadata().put("Encoded", "Metadata");
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
@@ -122,7 +122,7 @@ class CreationHeadRequestHandlerTest {
   void processWithNoLengthAndNoMetadata() {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
-    info.setLength(null);
+    info.setSize(null);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 

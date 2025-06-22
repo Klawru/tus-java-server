@@ -28,11 +28,11 @@ public class UploadInfo implements Serializable {
   @Getter @Setter private UploadId id;
 
   /**
-   * The total length of the byte array that the client wants to upload. This value is provided by
-   * the client when creating the upload (POST) or when uploading a new set of bytes (PATCH) If null
-   * size is unknown.
+   * The total size of the byte array that the client wants to upload. The client provides this value
+   * when creating the upload (POST) or when uploading a new set of bytes (PATCH)
+   * If null size is unknown.
    */
-  @Getter private Long length;
+  @Getter private Long size;
 
   /**
    * Offset in bytes (zero-based) The current byte offset of the bytes that already have been stored
@@ -122,7 +122,7 @@ public class UploadInfo implements Serializable {
   public UploadInfo() {
     this.creationTimestamp = Instant.now();
     this.offset = 0L;
-    this.length = null;
+    this.size = null;
   }
 
   /**
@@ -148,10 +148,10 @@ public class UploadInfo implements Serializable {
    * Set the total length of the byte array that the client wants to upload. The client can provided
    * this value when creating the upload (POST) or when uploading a new set of bytes (PATCH).
    *
-   * @param length The number of bytes that the client specified he will upload
+   * @param size The number of bytes that the client specified he will upload
    */
-  public void setLength(Long length) {
-    this.length = (length != null && length > 0 ? length : null);
+  public void setSize(Long size) {
+    this.size = (size != null && size > 0 ? size : null);
   }
 
   /**
@@ -160,18 +160,18 @@ public class UploadInfo implements Serializable {
    * @return True if the total upload length is known, false otherwise
    */
   public boolean hasLength() {
-    return length != null;
+    return size != null;
   }
 
   /**
    * An upload is still in progress: - as long as we did not receive information on the total length
-   * (see {@link UploadInfo#getLength()}) - the total length does not match the current offset.
+   * (see {@link UploadInfo#getSize()}) - the total length does not match the current offset.
    *
    * @return true if the upload is still in progress, false otherwise
    */
   @Transient
   public boolean isUploadInProgress() {
-    return !Objects.equals(offset, length);
+    return !Objects.equals(offset, size);
   }
 
   /**

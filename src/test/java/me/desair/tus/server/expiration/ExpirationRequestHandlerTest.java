@@ -93,7 +93,7 @@ class ExpirationRequestHandlerTest {
   void testInProgressUpload() {
     UploadInfo info = new UploadInfo();
     info.setOffset(2L);
-    info.setLength(10L);
+    info.setSize(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
     when(uploadStorageService.getUploadExpirationPeriod()).thenReturn(172800000L);
@@ -134,7 +134,7 @@ class ExpirationRequestHandlerTest {
   void testFinishedUpload() {
     UploadInfo info = new UploadInfo();
     info.setOffset(10L);
-    info.setLength(10L);
+    info.setSize(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
     when(uploadStorageService.getUploadExpirationPeriod()).thenReturn(172800000L);
@@ -157,7 +157,7 @@ class ExpirationRequestHandlerTest {
   void testNullExpiration() {
     UploadInfo info = new UploadInfo();
     info.setOffset(8L);
-    info.setLength(10L);
+    info.setSize(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
     when(uploadStorageService.getUploadExpirationPeriod()).thenReturn(null);
@@ -179,7 +179,7 @@ class ExpirationRequestHandlerTest {
   void testZeroExpiration() {
     UploadInfo info = new UploadInfo();
     info.setOffset(8L);
-    info.setLength(10L);
+    info.setSize(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
     when(uploadStorageService.getUploadExpirationPeriod()).thenReturn(0L);
@@ -201,7 +201,7 @@ class ExpirationRequestHandlerTest {
   void testNegativeExpiration() {
     UploadInfo info = new UploadInfo();
     info.setOffset(8L);
-    info.setLength(10L);
+    info.setSize(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
     when(uploadStorageService.getUploadExpirationPeriod()).thenReturn(-10L);

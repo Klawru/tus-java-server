@@ -115,7 +115,7 @@ class ConcatenationHeadRequestHandlerTest {
     UploadInfo info1 = new UploadInfo();
     info1.setId(UploadId.randomUUID());
     info1.setUploadConcatHeaderValue("final; 123 456");
-    info1.setLength(10L);
+    info1.setSize(10L);
     info1.setOffset(10L);
     info1.setUploadType(UploadType.CONCATENATED);
 
@@ -134,7 +134,7 @@ class ConcatenationHeadRequestHandlerTest {
     assertThat(servletResponse.getHeader(HttpHeader.UPLOAD_LENGTH), is("10"));
     assertThat(servletResponse.getHeader(HttpHeader.UPLOAD_OFFSET), is("10"));
 
-    verify(concatenationService, never()).merge(info1);
+    verify(concatenationService, never()).concat(info1);
   }
 
   @Test
@@ -143,7 +143,7 @@ class ConcatenationHeadRequestHandlerTest {
     UploadInfo info1 = new UploadInfo();
     info1.setId(UploadId.randomUUID());
     info1.setUploadConcatHeaderValue("final; 123 456");
-    info1.setLength(10L);
+    info1.setSize(10L);
     info1.setOffset(8L);
     info1.setUploadType(UploadType.CONCATENATED);
 
@@ -162,6 +162,6 @@ class ConcatenationHeadRequestHandlerTest {
     assertThat(servletResponse.getHeader(HttpHeader.UPLOAD_LENGTH), is("10"));
     assertThat(servletResponse.getHeader(HttpHeader.UPLOAD_OFFSET), is(nullValue()));
 
-    verify(concatenationService, times(1)).merge(info1);
+    verify(concatenationService, times(1)).concat(info1);
   }
 }

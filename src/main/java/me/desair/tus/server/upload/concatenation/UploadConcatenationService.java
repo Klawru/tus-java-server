@@ -22,7 +22,7 @@ public interface UploadConcatenationService {
    * @throws IOException If merging the upload fails
    * @throws UploadNotFoundException When one of the partial uploads cannot be found
    */
-  void merge(UploadInfo uploadInfo) throws IOException, TusException;
+  void concat(UploadInfo uploadInfo) throws IOException, TusException;
 
   /**
    * Get the concatenated bytes of this concatenated upload

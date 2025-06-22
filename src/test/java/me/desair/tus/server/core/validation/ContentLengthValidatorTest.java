@@ -48,7 +48,7 @@ class ContentLengthValidatorTest {
   void validateValidLength(String testName, long offset, long contentLength) {
     UploadInfo info = new UploadInfo();
     info.setOffset(offset);
-    info.setLength(10L);
+    info.setSize(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 
@@ -73,7 +73,7 @@ class ContentLengthValidatorTest {
   void validateInvalidLength(String testName, long offset, long contentLength) {
     UploadInfo info = new UploadInfo();
     info.setOffset(offset);
-    info.setLength(10L);
+    info.setSize(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 

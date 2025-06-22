@@ -43,12 +43,12 @@ public class ConcatenationPostRequestHandler extends AbstractRequestHandler {
 
       } else if (StringUtils.startsWithIgnoreCase(uploadConcatValue, "final")) {
         // reset the length, just to be sure
-        uploadInfo.setLength(null);
+        uploadInfo.setSize(null);
         uploadInfo.setUploadType(UploadType.CONCATENATED);
         uploadInfo.setConcatenationPartIds(
             HttpUtils.parseConcatenationIdsFromUploadHeader(uploadConcatValue));
 
-        uploadStorageService.getUploadConcatenationService().merge(uploadInfo);
+        uploadStorageService.getUploadConcatenationService().concat(uploadInfo);
 
       } else {
         uploadInfo.setUploadType(UploadType.REGULAR);

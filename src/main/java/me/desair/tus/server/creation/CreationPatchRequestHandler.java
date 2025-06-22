@@ -40,7 +40,7 @@ public class CreationPatchRequestHandler extends AbstractRequestHandler {
     if (uploadInfo != null && !uploadInfo.hasLength()) {
       Long uploadLength = HttpUtils.getLongHeader(servletRequest, HttpHeader.UPLOAD_LENGTH);
       if (uploadLength != null) {
-        uploadInfo.setLength(uploadLength);
+        uploadInfo.setSize(uploadLength);
         try {
           uploadStorageService.update(uploadInfo);
         } catch (UploadNotFoundException e) {

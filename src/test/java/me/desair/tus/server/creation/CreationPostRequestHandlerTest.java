@@ -86,7 +86,7 @@ class CreationPostRequestHandlerTest {
               @Override
               public UploadInfo answer(InvocationOnMock invocation) throws Throwable {
                 UploadInfo upload = invocation.getArgument(0);
-                assertThat(upload.getLength(), is(10L));
+                assertThat(upload.getSize(), is(10L));
                 Map<String, Object> map = new java.util.HashMap<>();
                 map.put("encoded-metadata", null);
                 assertThat(upload.getMetadata(), is(map));
@@ -125,7 +125,7 @@ class CreationPostRequestHandlerTest {
               @Override
               public UploadInfo answer(InvocationOnMock invocation) throws Throwable {
                 UploadInfo upload = invocation.getArgument(0);
-                assertThat(upload.getLength(), is(10L));
+                assertThat(upload.getSize(), is(10L));
                 Assertions.assertThat(upload.getMetadata()).isEmpty();
 
                 upload.setId(id);
@@ -162,7 +162,7 @@ class CreationPostRequestHandlerTest {
               @Override
               public UploadInfo answer(InvocationOnMock invocation) throws Throwable {
                 UploadInfo upload = invocation.getArgument(0);
-                assertThat(upload.getLength(), is(nullValue()));
+                assertThat(upload.getSize(), is(nullValue()));
                 assertThat(upload.getMetadata(), hasEntry("encoded-metadata", null));
 
                 upload.setId(id);
@@ -199,7 +199,7 @@ class CreationPostRequestHandlerTest {
               @Override
               public UploadInfo answer(InvocationOnMock invocation) throws Throwable {
                 UploadInfo upload = invocation.getArgument(0);
-                assertThat(upload.getLength(), is(nullValue()));
+                assertThat(upload.getSize(), is(nullValue()));
                 Assertions.assertThat(upload.getMetadata()).isEmpty();
 
                 upload.setId(id);

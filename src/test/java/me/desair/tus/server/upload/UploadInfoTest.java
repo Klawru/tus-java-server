@@ -92,7 +92,7 @@ class UploadInfoTest {
   @SneakyThrows
   void hasLength() {
     UploadInfo info = new UploadInfo();
-    info.setLength(10L);
+    info.setSize(10L);
     assertTrue(info.hasLength());
   }
 
@@ -100,7 +100,7 @@ class UploadInfoTest {
   @SneakyThrows
   void hasLengthFalse() {
     UploadInfo info = new UploadInfo();
-    info.setLength(null);
+    info.setSize(null);
     assertFalse(info.hasLength());
   }
 
@@ -108,7 +108,7 @@ class UploadInfoTest {
   @SneakyThrows
   void isUploadInProgressNoLengthNoOffset() {
     UploadInfo info = new UploadInfo();
-    info.setLength(null);
+    info.setSize(null);
     info.setOffset(0);
     assertTrue(info.isUploadInProgress());
   }
@@ -117,7 +117,7 @@ class UploadInfoTest {
   @SneakyThrows
   void isUploadInProgressNoLengthWithOffset() {
     UploadInfo info = new UploadInfo();
-    info.setLength(null);
+    info.setSize(null);
     info.setOffset(10L);
     assertTrue(info.isUploadInProgress());
   }
@@ -126,7 +126,7 @@ class UploadInfoTest {
   @SneakyThrows
   void isUploadInProgressOffsetDoesNotMatchLength() {
     UploadInfo info = new UploadInfo();
-    info.setLength(10L);
+    info.setSize(10L);
     info.setOffset(8L);
     assertTrue(info.isUploadInProgress());
   }
@@ -135,7 +135,7 @@ class UploadInfoTest {
   @SneakyThrows
   void isUploadInProgressOffsetMatchesLength() {
     UploadInfo info = new UploadInfo();
-    info.setLength(10L);
+    info.setSize(10L);
     info.setOffset(10L);
     assertFalse(info.isUploadInProgress());
   }
@@ -144,37 +144,37 @@ class UploadInfoTest {
   @SneakyThrows
   void testEquals() {
     UploadInfo info1 = new UploadInfo();
-    info1.setLength(10L);
+    info1.setSize(10L);
     info1.setOffset(5L);
     info1.getMetadata().put("Encoded", "Metadata");
     info1.setId(new UploadId("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
 
     UploadInfo info2 = new UploadInfo();
-    info2.setLength(10L);
+    info2.setSize(10L);
     info2.setOffset(5L);
     info2.getMetadata().put("Encoded", "Metadata");
     info2.setId(new UploadId("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
 
     UploadInfo info3 = new UploadInfo();
-    info3.setLength(9L);
+    info3.setSize(9L);
     info3.setOffset(5L);
     info2.getMetadata().put("Encoded", "Metadata");
     info3.setId(new UploadId("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
 
     UploadInfo info4 = new UploadInfo();
-    info4.setLength(10L);
+    info4.setSize(10L);
     info4.setOffset(6L);
     info2.getMetadata().put("Encoded", "Metadata");
     info4.setId(new UploadId("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
 
     UploadInfo info5 = new UploadInfo();
-    info5.setLength(10L);
+    info5.setSize(10L);
     info5.setOffset(5L);
     info5.getMetadata().put("Encoded", "Any");
     info5.setId(new UploadId("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
 
     UploadInfo info6 = new UploadInfo();
-    info6.setLength(10L);
+    info6.setSize(10L);
     info6.setOffset(5L);
     info6.getMetadata().put("Encoded", "Metadata");
     info6.setId(new UploadId("1911e8a4-6939-490c-c58b-a5d70f8d91fb"));
@@ -193,13 +193,13 @@ class UploadInfoTest {
   @SneakyThrows
   void testHashCode() {
     UploadInfo info1 = new UploadInfo();
-    info1.setLength(10L);
+    info1.setSize(10L);
     info1.setOffset(5L);
     info1.getMetadata().put("Encoded", "Metadata");
     info1.setId(new UploadId("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
 
     UploadInfo info2 = new UploadInfo();
-    info2.setLength(10L);
+    info2.setSize(10L);
     info2.setOffset(5L);
     info2.getMetadata().put("Encoded", "Metadata");
     info2.setId(new UploadId("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
@@ -264,7 +264,7 @@ class UploadInfoTest {
     // Check that the object can be serialized and descended to JSON
     UploadInfo uploadInfo = new UploadInfo("10.11.12.13");
     uploadInfo.setId(new UploadId("1911e8a4-6939-490c-b58b-a5d70f8d91fb"));
-    uploadInfo.setLength(100L);
+    uploadInfo.setSize(100L);
     uploadInfo.setOffset(10L);
     uploadInfo.getMetadata().put("Encoded", "Metadata");
     uploadInfo.setUploadType(UploadType.REGULAR);

@@ -47,12 +47,12 @@ public class ConcatenationHeadRequestHandler extends AbstractRequestHandler {
     if (UploadType.CONCATENATED.equals(uploadInfo.getUploadType())) {
       if (uploadInfo.isUploadInProgress()) {
         // Execute the merge function again to update our upload data
-        uploadStorageService.getUploadConcatenationService().merge(uploadInfo);
+        uploadStorageService.getUploadConcatenationService().concat(uploadInfo);
       }
 
       if (uploadInfo.hasLength()) {
         servletResponse.setHeader(
-            HttpHeader.UPLOAD_LENGTH, Objects.toString(uploadInfo.getLength()));
+            HttpHeader.UPLOAD_LENGTH, Objects.toString(uploadInfo.getSize()));
       }
 
       if (!uploadInfo.isUploadInProgress()) {

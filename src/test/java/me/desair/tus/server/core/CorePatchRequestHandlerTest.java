@@ -69,14 +69,14 @@ class CorePatchRequestHandlerTest {
     UploadInfo info = new UploadInfo();
     info.setId(UploadId.randomUUID());
     info.setOffset(2L);
-    info.setLength(10L);
+    info.setSize(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 
     UploadInfo updatedInfo = new UploadInfo();
     updatedInfo.setId(info.getId());
     updatedInfo.setOffset(8L);
-    updatedInfo.setLength(10L);
+    updatedInfo.setSize(10L);
     when(uploadStorageService.append(any(UploadInfo.class), any(InputStream.class)))
         .thenReturn(updatedInfo);
 
@@ -99,7 +99,7 @@ class CorePatchRequestHandlerTest {
     UploadInfo info = new UploadInfo();
     info.setId(UploadId.randomUUID());
     info.setOffset(10L);
-    info.setLength(10L);
+    info.setSize(10L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
 
@@ -140,7 +140,7 @@ class CorePatchRequestHandlerTest {
     UploadInfo info = new UploadInfo();
     info.setId(UploadId.randomUUID());
     info.setOffset(10L);
-    info.setLength(8L);
+    info.setSize(8L);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(info);
     when(uploadStorageService.append(any(UploadInfo.class), any(InputStream.class)))

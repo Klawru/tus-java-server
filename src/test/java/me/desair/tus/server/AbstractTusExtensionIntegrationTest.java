@@ -49,7 +49,7 @@ public abstract class AbstractTusExtensionIntegrationTest {
   protected void prepareUploadInfo(Long offset, Long length) throws IOException, TusException {
     uploadInfo = new UploadInfo();
     uploadInfo.setOffset(offset);
-    uploadInfo.setLength(length);
+    uploadInfo.setSize(length);
     when(uploadStorageService.getUploadInfo(nullable(String.class), nullable(String.class)))
         .thenReturn(uploadInfo);
     when(uploadStorageService.append(any(UploadInfo.class), any(InputStream.class)))
@@ -71,7 +71,7 @@ public abstract class AbstractTusExtensionIntegrationTest {
             break;
           case HttpHeader.CONTENT_LENGTH:
             servletRequest.addHeader(
-                HttpHeader.CONTENT_LENGTH, uploadInfo.getLength() - uploadInfo.getOffset());
+                HttpHeader.CONTENT_LENGTH, uploadInfo.getSize() - uploadInfo.getOffset());
             break;
           default:
             log.warn("Undefined HTTP header {}", header);
